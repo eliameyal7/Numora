@@ -32,7 +32,6 @@
         input[type="text"], input[type="number"] { padding: 12px; font-size: 1.1rem; border: 2px solid #dfe6e9; border-radius: 10px; box-sizing: border-box; color: #2d3436; font-weight: 500; transition: all 0.2s; }
         input:focus { border-color: #6c5ce7; outline: none; box-shadow: 0 0 8px rgba(108, 92, 231, 0.15); }
         
-        /* Subtle aesthetic smoothing polish updates applied natively across container states */
         .category-block { background: #ffffff; border: 2px solid #edf2f7; padding: 25px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s; }
         .category-block:hover { transform: translateY(-2px); border-color: #dfe6e9; }
         .category-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px dashed #dfe6e9; padding-bottom: 15px; }
@@ -51,14 +50,12 @@
         .ai-table th, .ai-table td { padding: 12px; text-align: left; border-bottom: 1px solid #dfe6e9; font-size: 0.95rem; }
         .ai-table th { background: #6c5ce7; color: white; font-weight: bold; }
 
-        /* Custom Utility UI Components */
         .header-controls { display: flex; align-items: center; justify-content: space-between; max-width: 1400px; margin: 0 auto 10px auto; }
-        .student-portal-btn { background: #ffeaa7; color: #d63031; font-weight: bold; border: 2px solid #fdcb6e; padding: 12px 20px; border-radius: 14px; cursor: pointer; font-family: inherit; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 10px rgba(253, 203, 110, 0.2); }
-        .student-portal-btn:hover { background: #fdcb6e; transform: translateY(-2px); }
+        .student-portal-btn { background: #e3fafc; color: #0b7285; font-weight: bold; border: 2px solid #99e9f2; padding: 12px 20px; border-radius: 14px; cursor: pointer; font-family: inherit; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 10px rgba(153, 233, 242, 0.2); }
+        .student-portal-btn:hover { background: #99e9f2; transform: translateY(-2px); }
         .settings-trigger-btn { background: white; border: 2px solid #dfe6e9; padding: 10px; border-radius: 14px; cursor: pointer; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
         .settings-trigger-btn:hover { border-color: #6c5ce7; background: #fbfbfe; transform: rotate(45deg); }
         
-        /* Modal Window Layouts */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(45, 52, 54, 0.5); backdrop-filter: blur(4px); z-index: 2000; justify-content: center; align-items: center; }
         .settings-modal { background: white; width: 360px; padding: 30px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); animation: scaleUp 0.2s ease-out; }
         .settings-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #f1f2f6; }
@@ -78,7 +75,7 @@
             <p class="subtitle">Create and organize custom question sets for your live match boards.</p>
         </div>
         <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
-            <button class="student-portal-btn" onclick="window.location.href='/student.html'">🎮 Student Portal? Enter Game Code</button>
+            <button class="student-portal-btn" onclick="window.location.href='/student.html'">🎮 Student Portal</button>
             <button class="settings-trigger-btn" onclick="toggleSettingsModal(true)">⚙️</button>
         </div>
     </div>
