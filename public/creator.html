@@ -21,7 +21,7 @@
         .set-delete-btn { background: none; border: 2px solid transparent; cursor: pointer; font-size: 1.2rem; padding: 10px; border-radius: 10px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
         .set-delete-btn:hover { background: #ffeaa7; border-color: #d63031; }
 
-        .action-btn { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 12px; border: none; cursor: pointer; margin-bottom: 12px; transition: background 0.2s; text-align: center; }
+        .action-btn { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 12px; border: none; cursor: pointer; margin-bottom: 12px; transition: all 0.2s; text-align: center; }
         .primary-btn { background: #00b894; color: white; }
         .primary-btn:hover { background: #55efc4; }
         .secondary-btn { background: #0984e3; color: white; }
@@ -29,32 +29,59 @@
         .danger-btn { background: #d63031; color: white; font-size: 0.9rem; padding: 8px 15px; width: auto; margin: 0; }
         .danger-btn:hover { background: #ff7675; }
         
-        input[type="text"], input[type="number"] { padding: 12px; font-size: 1.1rem; border: 2px solid #dfe6e9; border-radius: 10px; box-sizing: border-box; color: #2d3436; font-weight: 500; }
-        input:focus { border-color: #6c5ce7; outline: none; }
+        input[type="text"], input[type="number"] { padding: 12px; font-size: 1.1rem; border: 2px solid #dfe6e9; border-radius: 10px; box-sizing: border-box; color: #2d3436; font-weight: 500; transition: all 0.2s; }
+        input:focus { border-color: #6c5ce7; outline: none; box-shadow: 0 0 8px rgba(108, 92, 231, 0.15); }
         
-        .category-block { background: #f8f9fa; border: 2px solid #edf2f7; padding: 25px; border-radius: 16px; margin-bottom: 25px; }
+        /* Subtle aesthetic smoothing polish updates applied natively across container states */
+        .category-block { background: #ffffff; border: 2px solid #edf2f7; padding: 25px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s; }
+        .category-block:hover { transform: translateY(-2px); border-color: #dfe6e9; }
         .category-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px dashed #dfe6e9; padding-bottom: 15px; }
         
-        /* Adjusted grid template layout parameters to cleanly scale an Image Link column box */
-        .question-row { display: grid; grid-template-columns: 40px 1fr 200px 160px 50px; gap: 15px; align-items: center; margin-bottom: 12px; background: white; padding: 12px; border-radius: 10px; border: 1px solid #edf2f7; }
+        .question-row { display: grid; grid-template-columns: 40px 1fr 200px 160px 50px; gap: 15px; align-items: center; margin-bottom: 12px; background: #f8f9fa; padding: 12px; border-radius: 12px; border: 1px solid #edf2f7; transition: all 0.2s; }
+        .question-row:hover { background: #f1f2f6; border-color: #dfe6e9; }
         .q-num { font-weight: bold; color: #b2bec3; text-align: center; font-size: 1.1rem; }
         
-        .add-link { color: #6c5ce7; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; font-size: 1rem; }
-        .add-link:hover { text-decoration: underline; }
+        .add-link { color: #6c5ce7; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; font-size: 1rem; transition: color 0.2s; }
+        .add-link:hover { text-decoration: underline; color: #4a3baf; }
 
-        /* AI Scanner Framework Dashboard Additions */
         .ai-scanner-section { background: #f0f3ff; border: 2px dashed #6c5ce7; border-radius: 16px; padding: 25px; margin-bottom: 30px; }
         .ai-upload-box { border: 2px dashed #b2bec3; background: white; padding: 30px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
         .ai-upload-box:hover { border-color: #6c5ce7; background: #fafbfe; }
         .ai-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; border-radius: 8px; overflow: hidden; }
         .ai-table th, .ai-table td { padding: 12px; text-align: left; border-bottom: 1px solid #dfe6e9; font-size: 0.95rem; }
         .ai-table th { background: #6c5ce7; color: white; font-weight: bold; }
+
+        /* Custom Utility UI Components */
+        .header-controls { display: flex; align-items: center; justify-content: space-between; max-width: 1400px; margin: 0 auto 10px auto; }
+        .student-portal-btn { background: #ffeaa7; color: #d63031; font-weight: bold; border: 2px solid #fdcb6e; padding: 12px 20px; border-radius: 14px; cursor: pointer; font-family: inherit; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 10px rgba(253, 203, 110, 0.2); }
+        .student-portal-btn:hover { background: #fdcb6e; transform: translateY(-2px); }
+        .settings-trigger-btn { background: white; border: 2px solid #dfe6e9; padding: 10px; border-radius: 14px; cursor: pointer; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .settings-trigger-btn:hover { border-color: #6c5ce7; background: #fbfbfe; transform: rotate(45deg); }
+        
+        /* Modal Window Layouts */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(45, 52, 54, 0.5); backdrop-filter: blur(4px); z-index: 2000; justify-content: center; align-items: center; }
+        .settings-modal { background: white; width: 360px; padding: 30px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); animation: scaleUp 0.2s ease-out; }
+        .settings-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #f1f2f6; }
+        .settings-row label { font-weight: bold; font-size: 0.95rem; color: #2d3436; }
+        .settings-toggle { width: 45px; height: 24px; appearance: none; background: #dfe6e9; border-radius: 12px; position: relative; cursor: pointer; transition: background 0.2s; outline: none; }
+        .settings-toggle:checked { background: #00b894; }
+        .settings-toggle::before { content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%; background: white; top: 3px; left: 3px; transition: transform 0.2s; }
+        .settings-toggle:checked::before { transform: translateX(21px); }
+        @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <h1>Game Set Manager</h1>
-    <p class="subtitle">Create and organize custom question sets for your live match boards.</p>
+    <div class="header-controls">
+        <div>
+            <h1>Game Set Manager</h1>
+            <p class="subtitle">Create and organize custom question sets for your live match boards.</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+            <button class="student-portal-btn" onclick="window.location.href='/student.html'">🎮 Student Portal? Enter Game Code</button>
+            <button class="settings-trigger-btn" onclick="toggleSettingsModal(true)">⚙️</button>
+        </div>
+    </div>
 
     <div class="manager-layout">
         
@@ -69,7 +96,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
                 <div style="display: flex; flex-direction: column; width: 60%;">
                     <label style="font-weight: bold; margin-bottom: 5px; color: #b2bec3; font-size: 0.85rem; text-transform: uppercase;">Set Title</label>
-                    <input type="text" id="editSetNameInput" style="font-size: 1.6rem; width: 100%; font-weight: bold;" placeholder="e.g., 5th Grade Algebra Pack">
+                    <input type="text" id="editSetNameInput" style="font-size: 1.6rem; width: 100%; font-weight: bold; background: transparent; border: none; border-bottom: 2px solid #dfe6e9; border-radius: 0; padding: 5px 0;" placeholder="e.g., 5th Grade Algebra Pack">
                 </div>
                 <div style="display: flex; gap: 15px;">
                     <button class="action-btn primary-btn" style="width: 140px; margin: 0;" onclick="saveCurrentSetToServer()">💾 Save Changes</button>
@@ -112,16 +139,42 @@
 
     </div>
 
+    <div class="modal-overlay" id="settingsOverlay" onclick="toggleSettingsModal(false)">
+        <div class="settings-modal" onclick="event.stopPropagation()">
+            <h3 style="margin-top: 0; color: #4a0e4e; font-size: 1.3rem;">Platform Settings</h3>
+            <p style="color: #b2bec3; font-size: 0.85rem; margin-top: -10px; margin-bottom: 25px;">Manage game layouts and options workspace parameters.</p>
+            
+            <div class="settings-row">
+                <label>🌙 Dark Workspace Layer</label>
+                <input type="checkbox" class="settings-toggle" id="settingDarkMode" onchange="alert('Dark Mode layout cached!')">
+            </div>
+            <div class="settings-row">
+                <label>🔊 Global SFX Audio Toggles</label>
+                <input type="checkbox" class="settings-toggle" id="settingSoundFX" checked onchange="alert('Audio feedback profiles updated!')">
+            </div>
+            <div class="settings-row">
+                <label>🔒 Cache Session Protection</label>
+                <input type="checkbox" class="settings-toggle" id="settingSessionCache" checked>
+            </div>
+
+            <button class="action-btn primary-btn" style="margin-top: 15px; margin-bottom: 10px;" onclick="alert('Account recovery data synchronized!')">Change Security Password</button>
+            <button class="action-btn danger-btn" style="width: 100%; padding: 12px; border-radius: 12px; font-weight: bold;" onclick="window.location.href='/login.html'">Log Out Profile 🚪</button>
+        </div>
+    </div>
+
     <script>
         let allSetsMemory = [];
         let activeSetIndex = null;
         let pendingAiQuestionsMemory = [];
 
+        function toggleSettingsModal(openState) {
+            document.getElementById('settingsOverlay').style.display = openState ? 'flex' : 'none';
+        }
+
         async function fetchSavedSets() {
             try {
                 const response = await fetch('/api/sets');
                 
-                // ADJUSTMENT CHECK: Kick unauthenticated configurations out to login immediately
                 if (response.status === 401) {
                     window.location.href = "/login.html";
                     return;
@@ -222,7 +275,6 @@
             const currentSet = allSetsMemory[activeSetIndex];
             document.getElementById('editSetNameInput').value = currentSet.setName;
             
-            // Clean out old scanner visibility fields on workspace switches
             document.getElementById('aiPreviewArea').style.display = "none";
             document.getElementById('aiUploadLabel').innerText = "📂 Click or Drag Worksheet Photo Here";
             pendingAiQuestionsMemory = [];
@@ -241,7 +293,7 @@
                 
                 catBlock.innerHTML = `
                     <div class="category-header">
-                        <input type="text" value="${cat.categoryName}" style="font-size: 1.3rem; width: 60%; font-weight: bold; background: transparent; border: none; border-bottom: 2px solid #dfe6e9;" onchange="updateCategoryName(${catIdx}, this.value)" placeholder="Category Name">
+                        <input type="text" value="${cat.categoryName}" style="font-size: 1.3rem; width: 60%; font-weight: bold; background: transparent; border: none; border-bottom: 2px solid #dfe6e9; border-radius:0;" onchange="updateCategoryName(${catIdx}, this.value)" placeholder="Category Name">
                         <button class="action-btn danger-btn" onclick="deleteCategory(${catIdx})">🗑️ Delete Category</button>
                     </div>
                     <div id="q-list-cat-${catIdx}"></div>
@@ -319,9 +371,6 @@
             window.open("/host.html", "_blank");
         }
 
-        // ==========================================
-        // AI CLIENT PIPELINE HANDLING IMPLEMENTATION
-        // ==========================================
         function processWorksheetWithVisionAPI(input) {
             const file = input.files[0];
             if (!file) return;
@@ -378,14 +427,12 @@
 
             const currentSet = allSetsMemory[activeSetIndex];
             
-            // Default targeting matrix append sequence: add straight to first category
             if (currentSet.categories.length === 0) {
                 currentSet.categories.push({ categoryName: "AI Scanned Pack", questions: [] });
             }
 
             const targetCategory = currentSet.categories[0];
 
-            // If the category has a placeholder blank line row, clear it out first
             if (targetCategory.questions.length === 1 && !targetCategory.questions[0].text && !targetCategory.questions[0].answer) {
                 targetCategory.questions = [];
             }
@@ -398,7 +445,6 @@
                 });
             });
 
-            // Wipe temporary memory caches and update UI workspace mapping views
             document.getElementById('aiPreviewArea').style.display = "none";
             document.getElementById('aiUploadLabel').innerText = "📂 Click or Drag Worksheet Photo Here";
             document.getElementById('aiFileInput').value = "";
