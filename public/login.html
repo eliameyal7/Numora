@@ -2,12 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Math League - Teacher Portal</title>
+    <title>Math League - Portal</title>
     <style>
         body { font-family: 'Montserrat', Arial, sans-serif; background-color: #f5f7fa; color: #2d3436; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
         .auth-container { background: white; border-radius: 24px; padding: 40px; max-width: 400px; width: 100%; box-shadow: 0 15px 35px rgba(0,0,0,0.08); text-align: center; box-sizing: border-box; }
-        h2 { font-size: 2rem; color: #6c5ce7; margin-top: 0; margin-bottom: 10px; }
-        p { color: #b2bec3; margin-bottom: 30px; font-size: 1rem; }
+        h2 { font-size: 2rem; color: #6c5ce7; margin-top: 0; margin-bottom: 30px; }
         .form-group { text-align: left; margin-bottom: 20px; position: relative; }
         label { display: block; font-weight: bold; margin-bottom: 8px; color: #2d3436; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
         input { width: 100%; padding: 14px; border: 2px solid #dfe6e9; border-radius: 12px; font-size: 1rem; box-sizing: border-box; transition: all 0.2s ease; font-family: inherit; }
@@ -18,7 +17,6 @@
         .error-msg { color: #d63031; font-weight: bold; margin-top: 15px; display: none; background: #ffeaa7; padding: 10px; border-radius: 8px; font-size: 0.9rem; }
         .success-msg { color: #00b894; font-weight: bold; margin-top: 15px; display: none; background: #e8f8f5; padding: 10px; border-radius: 8px; font-size: 0.9rem; }
         
-        /* New custom styling additions for utilities */
         .show-password-container { margin-top: 8px; text-align: left; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #636e72; }
         .show-password-container input { width: auto; margin: 0; cursor: pointer; }
         .forgot-link { display: block; text-align: right; margin-top: 6px; color: #b2bec3; font-size: 0.85rem; text-decoration: none; cursor: pointer; }
@@ -28,8 +26,7 @@
 <body>
 
     <div class="auth-container">
-        <h2 id="authTitle">Login Page</h2>
-        <p id="authSub">Access your dashboard & geometry game sets</p>
+        <h2 id="authTitle">Log in Page</h2>
 
         <div class="form-group">
             <label for="email">Email Address</label>
@@ -43,7 +40,7 @@
                 <input type="checkbox" id="togglePassword">
                 <label for="togglePassword" style="text-transform: none; font-weight: normal; margin: 0; letter-spacing: 0; cursor: pointer;">Show Password</label>
             </div>
-            <a class="forgot-link" id="forgotPasswordLink" onclick="alert('Password reset helper initiated.')">Forgot password?</a>
+            <a class="forgot-link" id="forgotPasswordLink" onclick="alert('Password reset helper initiated.')">Forgot Password?</a>
         </div>
 
         <button class="auth-btn" id="submitBtn" onclick="handleAuthSubmit()">LOG IN 🔐</button>
@@ -56,7 +53,6 @@
     <script>
         let isLoginMode = true;
 
-        // Interactive visibility listener logic
         document.getElementById('togglePassword').addEventListener('change', function() {
             const passwordField = document.getElementById('password');
             passwordField.type = this.checked ? 'text' : 'password';
@@ -65,24 +61,20 @@
         function toggleAuthMode() {
             isLoginMode = !isLoginMode;
             const title = document.getElementById('authTitle');
-            const sub = document.getElementById('authSub');
             const btn = document.getElementById('submitBtn');
             const toggle = document.getElementById('toggleModeLink');
             const forgotLink = document.getElementById('forgotPasswordLink');
             
-            // Clear status messages
             document.getElementById('errorBox').style.display = 'none';
             document.getElementById('successBox').style.display = 'none';
 
             if (isLoginMode) {
-                title.innerText = "Login Page";
-                sub.innerText = "Access your dashboard & geometry game sets";
+                title.innerText = "Log in Page";
                 btn.innerText = "LOG IN 🔐";
                 toggle.innerText = "Don't have an account? Sign up here";
                 forgotLink.style.display = "block";
             } else {
                 title.innerText = "Create Account";
-                sub.innerText = "Register your secure teacher workspace profile";
                 btn.innerText = "REGISTER ACCOUNT 🚀";
                 toggle.innerText = "Already registered? Log in instead";
                 forgotLink.style.display = "none";
