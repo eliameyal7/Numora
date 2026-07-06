@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Set Manager - Perennial Math</title>
+    <style>
+        body { font-family: 'Montserrat', Arial, sans-serif; background: #f5f7fa; color: #2d3436; margin: 0; padding: 40px; }
+        h1 { color: #4a0e4e; font-size: 2.5rem; margin-bottom: 5px; }
+        .subtitle { color: #b2bec3; font-size: 1.1rem; margin-bottom: 30px; margin-top: 0; }
+        
+        .manager-layout { display: flex; gap: 40px; max-width: 1400px; margin: 0 auto; }
+        .sidebar { width: 320px; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); height: fit-content; }
+        .editor-workspace { flex-grow: 1; background: white; padding: 35px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); display: none; }
+        
+        .sidebar-set-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        
+        .set-item-btn { flex-grow: 1; text-align: left; padding: 15px; border: 2px solid #f1f2f6; border-radius: 12px; background: white; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.2s; color: #2d3436; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+        .set-item-btn:hover { background: #f1f2f6; border-color: #b2bec3; }
+        .set-item-btn.selected { background: #6c5ce7; color: white; border-color: #6c5ce7; }
+        
+        .set-delete-btn { background: none; border: 2px solid transparent; cursor: pointer; font-size: 1.2rem; padding: 10px; border-radius: 10px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .set-delete-btn:hover { background: #ffeaa7; border-color: #d63031; }
+
+        .action-btn { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 12px; border: none; cursor: pointer; margin-bottom: 12px; transition: background 0.2s; text-align: center; }
+        .primary-btn { background: #00b894; color: white; }
+        .primary-btn:hover { background: #55efc4; }
+        .secondary-btn { background: #0984e3; color: white; }
+        .secondary-btn:hover { background: #74b9ff; }
+        .danger-btn { background: #d63031; color: white; font-size: 0.9rem; padding: 8px 15px; width: auto; margin: 0; }
+        .danger-btn:hover { background: #ff7675; }
+        
+        input[type="text"], input[type="number"] { padding: 12px; font-size: 1.1rem; border: 2px solid #dfe6e9; border-radius: 10px; box-sizing: border-box; color: #2d3436; font-weight: 500; }
+        input:focus { border-color: #6c5ce7; outline: none; }
+        
+        .category-block { background: #f8f9fa; border: 2px solid #edf2f7; padding: 25px; border-radius: 16px; margin-bottom: 25px; }
+        .category-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px dashed #dfe6e9; padding-bottom: 15px; }
+        
+        /* Adjusted grid template layout parameters to cleanly scale an Image Link column box */
+        .question-row { display: grid; grid-template-columns: 40px 1fr 200px 160px 50px; gap: 15px; align-items: center; margin-bottom: 12px; background: white; padding: 12px; border-radius: 10px; border: 1px solid #edf2f7; }
+        .q-num { font-weight: bold; color: #b2bec3; text-align: center; font-size: 1.1rem; }
+        
+        .add-link { color: #6c5ce7; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; font-size: 1rem; }
+        .add-link:hover { text-decoration: underline; }
+
+        /* AI Scanner Framework Dashboard Additions */
+        .ai-scanner-section { background: #f0f3ff; border: 2px dashed #6c5ce7; border-radius: 16px; padding: 25px; margin-bottom: 30px; }
+        .ai-upload-box { border: 2px dashed #b2bec3; background: white; padding: 30px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .ai-upload-box:hover { border-color: #6c5ce7; background: #fafbfe; }
+        .ai-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; border-radius: 8px; overflow: hidden; }
+        .ai-table th, .ai-table td { padding: 12px; text-align: left; border-bottom: 1px solid #dfe6e9; font-size: 0.95rem; }
+        .ai-table th { background: #6c5ce7; color: white; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>Game Set Manager</h1>
+    <p class="subtitle">Create and organize custom question sets for your live match boards.</p>
+
+    <div class="manager-layout">
+        
+        <div class="sidebar">
+            <button class="action-btn primary-btn" onclick="createNewSet()">➕ Create New Set</button>
+            <hr style="border: none; border-top: 2px solid #f1f2f6; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #2d3436; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Your Sets</h3>
+            <div id="setsListContainer">Loading sets...</div>
+        </div>
+
+        <div class="editor-workspace" id="editorWorkspace">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <div style="display: flex; flex-direction: column; width: 60%;">
+                    <label style="font-weight: bold; margin-bottom: 5px; color: #b2bec3; font-size: 0.85rem; text-transform: uppercase;">Set Title</label>
+                    <input type="text" id="editSetNameInput" style="font-size: 1.6rem; width: 100%; font-weight: bold;" placeholder="e.g., 5th Grade Algebra Pack">
+                </div>
+                <div style="display: flex; gap: 15px;">
+                    <button class="action-btn primary-btn" style="width: 140px; margin: 0;" onclick="saveCurrentSetToServer()">💾 Save Changes</button>
+                    <button class="action-btn secondary-btn" style="width: 140px; margin: 0;" id="launchGameBtn" onclick="launchSetIntoLiveLobby()">🎮 Play Set</button>
+                </div>
+            </div>
+
+            <div class="ai-scanner-section">
+                <h3 style="margin-top:0; color:#4a0e4e; display:flex; align-items:center; gap:8px;">🤖 AI Worksheet Snapshot Scanner</h3>
+                <p style="margin-top:0; color:#636e72; font-size:0.9rem;">Snap a picture of a geometry or math worksheet. OpenAI Vision will instantly read questions, identify parameters, and generate data rows.</p>
+                
+                <div class="ai-upload-box" onclick="document.getElementById('aiFileInput').click()">
+                    <span id="aiUploadLabel" style="font-weight:bold; color:#6c5ce7;">📂 Click or Drag Worksheet Photo Here</span>
+                    <input type="file" id="aiFileInput" accept="image/*" style="display:none;" onchange="processWorksheetWithVisionAPI(this)">
+                </div>
+
+                <div id="aiLoadingStatus" style="display:none; text-align:center; padding:20px; font-weight:bold; color:#6c5ce7;">
+                    ⏳ AI is parsing document geometry math formulas... please hold on...
+                </div>
+
+                <div id="aiPreviewArea" style="display:none; margin-top:20px;">
+                    <h4 style="margin:0 0 10px 0; color:#2d3436;">Extracted Question Candidates</h4>
+                    <table class="ai-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 70%;">Question Statement Text</th>
+                                <th style="width: 30%;">Computed Answer</th>
+                            </tr>
+                        </thead>
+                        <tbody id="aiTablePreviewBody"></tbody>
+                    </table>
+                    <button class="action-btn primary-btn" style="margin-top:15px; width:auto; padding:12px 25px;" onclick="importAiQuestionsIntoCurrentWorkspace()">📥 Import Scanned Questions into Set</button>
+                </div>
+            </div>
+
+            <div id="categoriesContainer"></div>
+            
+            <button class="action-btn secondary-btn" style="width: auto; padding: 12px 25px; margin-top: 10px;" onclick="addCategoryToSet()">➕ Add Category</button>
+        </div>
+
+    </div>
+
+    <script>
+        let allSetsMemory = [];
+        let activeSetIndex = null;
+        let pendingAiQuestionsMemory = [];
+
+        async function fetchSavedSets() {
+            try {
+                const response = await fetch('/api/sets');
+                
+                // ADJUSTMENT CHECK: Kick unauthenticated configurations out to login immediately
+                if (response.status === 401) {
+                    window.location.href = "/login.html";
+                    return;
+                }
+                
+                allSetsMemory = await response.json();
+                renderSidebarList();
+            } catch (err) {
+                console.error("Could not fetch database sets:", err);
+            }
+        }
+
+        function renderSidebarList() {
+            const container = document.getElementById('setsListContainer');
+            container.innerHTML = "";
+            
+            if(allSetsMemory.length === 0) {
+                container.innerHTML = `<p style="color: #b2bec3; font-style: italic;">No sets created yet.</p>`;
+                return;
+            }
+
+            allSetsMemory.forEach((set, idx) => {
+                const row = document.createElement('div');
+                row.className = 'sidebar-set-row';
+
+                const btn = document.createElement('button');
+                btn.className = `set-item-btn ${idx === activeSetIndex ? 'selected' : ''}`;
+                btn.innerText = set.setName || "Untitled Set";
+                btn.onclick = () => openSetInWorkspace(idx);
+                
+                const delBtn = document.createElement('button');
+                delBtn.className = 'set-delete-btn';
+                delBtn.innerHTML = '🗑️';
+                delBtn.title = 'Delete this set permanently';
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteEntireSet(idx);
+                };
+
+                row.appendChild(btn);
+                row.appendChild(delBtn);
+                container.appendChild(row);
+            });
+        }
+
+        async function deleteEntireSet(idx) {
+            const confirmDelete = confirm(`Are you sure you want to delete "${allSetsMemory[idx].setName || 'Untitled Set'}" permanently?`);
+            if (!confirmDelete) return;
+
+            allSetsMemory.splice(idx, 1);
+
+            if (activeSetIndex === idx) {
+                activeSetIndex = null;
+                document.getElementById('editorWorkspace').style.display = "none";
+            } else if (activeSetIndex > idx) {
+                activeSetIndex--;
+            }
+
+            try {
+                const response = await fetch('/api/sets', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(allSetsMemory)
+                });
+                const resData = await response.json();
+                if(resData.success) {
+                    renderSidebarList();
+                }
+            } catch(err) {
+                alert("Error deleting set from file.");
+            }
+        }
+
+        function createNewSet() {
+            const newSet = {
+                id: "set-" + Date.now(),
+                setName: "New Custom Set",
+                categories: [
+                    {
+                        categoryName: "Category 1",
+                        questions: [
+                            { text: "", answer: "", image: "" }
+                        ]
+                    }
+                ]
+            };
+            allSetsMemory.push(newSet);
+            activeSetIndex = allSetsMemory.length - 1;
+            renderSidebarList();
+            openSetInWorkspace(activeSetIndex);
+        }
+
+        function openSetInWorkspace(idx) {
+            activeSetIndex = idx;
+            renderSidebarList();
+            
+            document.getElementById('editorWorkspace').style.display = "block";
+            const currentSet = allSetsMemory[activeSetIndex];
+            document.getElementById('editSetNameInput').value = currentSet.setName;
+            
+            // Clean out old scanner visibility fields on workspace switches
+            document.getElementById('aiPreviewArea').style.display = "none";
+            document.getElementById('aiUploadLabel').innerText = "📂 Click or Drag Worksheet Photo Here";
+            pendingAiQuestionsMemory = [];
+
+            renderWorkspaceCategories();
+        }
+
+        function renderWorkspaceCategories() {
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = "";
+            const currentSet = allSetsMemory[activeSetIndex];
+
+            currentSet.categories.forEach((cat, catIdx) => {
+                const catBlock = document.createElement('div');
+                catBlock.className = 'category-block';
+                
+                catBlock.innerHTML = `
+                    <div class="category-header">
+                        <input type="text" value="${cat.categoryName}" style="font-size: 1.3rem; width: 60%; font-weight: bold; background: transparent; border: none; border-bottom: 2px solid #dfe6e9;" onchange="updateCategoryName(${catIdx}, this.value)" placeholder="Category Name">
+                        <button class="action-btn danger-btn" onclick="deleteCategory(${catIdx})">🗑️ Delete Category</button>
+                    </div>
+                    <div id="q-list-cat-${catIdx}"></div>
+                    <div class="add-link" onclick="addQuestionToCategory(${catIdx})">➕ Add Question row</div>
+                `;
+                
+                container.appendChild(catBlock);
+                
+                const qListContainer = document.getElementById(`q-list-cat-${catIdx}`);
+                cat.questions.forEach((q, qIdx) => {
+                    const row = document.createElement('div');
+                    row.className = 'question-row';
+                    row.innerHTML = `
+                        <div class="q-num">${qIdx + 1}</div>
+                        <input type="text" value="${q.text || ''}" placeholder="Type question statement here..." onchange="updateQuestionText(${catIdx}, ${qIdx}, this.value)">
+                        <input type="text" value="${q.image || ''}" placeholder="Image URL (Optional)" onchange="updateQuestionImage(${catIdx}, ${qIdx}, this.value)">
+                        <input type="text" value="${q.answer || ''}" placeholder="Correct Answer" onchange="updateQuestionAnswer(${catIdx}, ${qIdx}, this.value)">
+                        <button style="background: none; border: none; cursor: pointer; font-size: 1.2rem;" onclick="deleteQuestion(${catIdx}, ${qIdx})">❌</button>
+                    `;
+                    qListContainer.appendChild(row);
+                });
+            });
+        }
+
+        function updateCategoryName(catIdx, val) { allSetsMemory[activeSetIndex].categories[catIdx].categoryName = val; }
+        function updateQuestionText(catIdx, qIdx, val) { allSetsMemory[activeSetIndex].categories[catIdx].questions[qIdx].text = val; }
+        function updateQuestionImage(catIdx, qIdx, val) { allSetsMemory[activeSetIndex].categories[catIdx].questions[qIdx].image = val; }
+        function updateQuestionAnswer(catIdx, qIdx, val) { allSetsMemory[activeSetIndex].categories[catIdx].questions[qIdx].answer = val; }
+
+        function addCategoryToSet() {
+            allSetsMemory[activeSetIndex].categories.push({
+                categoryName: "New Category " + (allSetsMemory[activeSetIndex].categories.length + 1),
+                questions: [{ text: "", answer: "", image: "" }]
+            });
+            renderWorkspaceCategories();
+        }
+
+        function deleteCategory(catIdx) {
+            allSetsMemory[activeSetIndex].categories.splice(catIdx, 1);
+            renderWorkspaceCategories();
+        }
+
+        function addQuestionToCategory(catIdx) {
+            allSetsMemory[activeSetIndex].categories[catIdx].questions.push({ text: "", answer: "", image: "" });
+            renderWorkspaceCategories();
+        }
+
+        function deleteQuestion(catIdx, qIdx) {
+            allSetsMemory[activeSetIndex].categories[catIdx].questions.splice(qIdx, 1);
+            renderWorkspaceCategories();
+        }
+
+        async function saveCurrentSetToServer() {
+            const titleInput = document.getElementById('editSetNameInput').value.trim();
+            allSetsMemory[activeSetIndex].setName = titleInput || "Untitled Set";
+            
+            try {
+                const response = await fetch('/api/sets', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(allSetsMemory)
+                });
+                const resData = await response.json();
+                if(resData.success) {
+                    alert("Set written down and saved permanently! 💾");
+                    renderSidebarList();
+                }
+            } catch(err) {
+                alert("Error connecting to database file.");
+            }
+        }
+
+        function launchSetIntoLiveLobby() {
+            localStorage.setItem('chosenGameSet', JSON.stringify(allSetsMemory[activeSetIndex]));
+            window.open("/host.html", "_blank");
+        }
+
+        // ==========================================
+        // AI CLIENT PIPELINE HANDLING IMPLEMENTATION
+        // ==========================================
+        function processWorksheetWithVisionAPI(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            document.getElementById('aiUploadLabel').innerText = `📄 Loaded: ${file.name}`;
+            document.getElementById('aiLoadingStatus').style.display = "block";
+            document.getElementById('aiPreviewArea').style.display = "none";
+
+            const reader = new FileReader();
+            reader.onloadend = async function () {
+                const base64Data = reader.result;
+
+                try {
+                    const response = await fetch('/api/ai/scan-worksheet', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ base64Image: base64Data })
+                    });
+
+                    const data = await response.json();
+                    document.getElementById('aiLoadingStatus').style.display = "none";
+
+                    if (!response.ok || !data.questions) {
+                        alert(data.error || "AI was unable to parse that image clear format.");
+                        return;
+                    }
+
+                    pendingAiQuestionsMemory = data.questions;
+                    
+                    const tbody = document.getElementById('aiTablePreviewBody');
+                    tbody.innerHTML = "";
+
+                    pendingAiQuestionsMemory.forEach(q => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td style="font-weight: 500;">${q.text}</td>
+                            <td style="color: #00b894; font-weight: bold;">${q.answer}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    document.getElementById('aiPreviewArea').style.display = "block";
+
+                } catch (err) {
+                    document.getElementById('aiLoadingStatus').style.display = "none";
+                    alert("Network connection error handling image scan processing.");
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function importAiQuestionsIntoCurrentWorkspace() {
+            if (!pendingAiQuestionsMemory || pendingAiQuestionsMemory.length === 0) return;
+
+            const currentSet = allSetsMemory[activeSetIndex];
+            
+            // Default targeting matrix append sequence: add straight to first category
+            if (currentSet.categories.length === 0) {
+                currentSet.categories.push({ categoryName: "AI Scanned Pack", questions: [] });
+            }
+
+            const targetCategory = currentSet.categories[0];
+
+            // If the category has a placeholder blank line row, clear it out first
+            if (targetCategory.questions.length === 1 && !targetCategory.questions[0].text && !targetCategory.questions[0].answer) {
+                targetCategory.questions = [];
+            }
+
+            pendingAiQuestionsMemory.forEach(aiQ => {
+                targetCategory.questions.push({
+                    text: aiQ.text,
+                    answer: aiQ.answer,
+                    image: ""
+                });
+            });
+
+            // Wipe temporary memory caches and update UI workspace mapping views
+            document.getElementById('aiPreviewArea').style.display = "none";
+            document.getElementById('aiUploadLabel').innerText = "📂 Click or Drag Worksheet Photo Here";
+            document.getElementById('aiFileInput').value = "";
+            pendingAiQuestionsMemory = [];
+
+            renderWorkspaceCategories();
+            alert("Success! Questions imported directly into your primary workspace row setup block below. Make sure to click Save Changes! 💾");
+        }
+
+        fetchSavedSets();
+    </script>
+</body>
+</html>

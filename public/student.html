@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Competition Player Window</title>
+    <style>
+        body { font-family: 'Montserrat', Arial, sans-serif; text-align: center; background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); color: white; padding: 20px; margin: 0; min-height: 95vh; }
+        #timer { font-size: 6rem; font-weight: bold; color: #fff; margin-top: 40px; margin-bottom: 30px; text-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        
+        .box-container { background: white; padding: 25px 20px; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); display: inline-block; width: 370px; color: #2d3436; text-align: center; box-sizing: border-box; }
+        input { padding: 15px; font-size: 1.8rem; width: 90%; text-align: center; border: 3px solid #dfe6e9; border-radius: 15px; margin-bottom: 20px; font-weight: bold; color: #2d3436; box-sizing: border-box; }
+        input:focus { border-color: #0984e3; outline: none; }
+        
+        button { padding: 15px; font-size: 1.6rem; background: #00b894; color: white; border: none; border-radius: 15px; cursor: pointer; font-weight: bold; box-shadow: 0 5px 0 #009473; width: 90%; margin-bottom: 5px; }
+        button:hover { background: #55efc4; }
+        button:active { transform: translateY(3px); box-shadow: 0 2px 0 #009473; }
+        
+        #errorBadge { color: #d63031; font-weight: bold; font-size: 1.1rem; margin-top: 15px; display: none; background: #ffeaa7; padding: 10px; border-radius: 8px; }
+
+        .preview-avatar { width: 90px; height: 90px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold; margin: 0 auto 15px auto; box-shadow: 0 6px 15px rgba(0,0,0,0.15); transition: background 0.2s; text-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
+        
+        .selector-row-title { font-size: 0.9rem; text-transform: uppercase; font-weight: bold; color: #b2bec3; letter-spacing: 1px; margin: 15px 0 8px 0; text-align: left; padding-left: 5px; }
+        
+        .emoji-scroll-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; max-height: 220px; overflow-y: auto; padding-right: 5px; border: 1px solid #f1f2f6; border-radius: 12px; padding: 10px; background: #fafafa; }
+        
+        .symbol-opt { font-size: 1.7rem; background: #ffffff; border: 2px solid #e1e8ed; border-radius: 10px; cursor: pointer; padding: 4px 0; transition: all 0.2s; display: flex; align-items: center; justify-content: center; height: 48px; box-sizing: border-box; }
+        .symbol-opt:hover { background: #dfe4ea; }
+        .symbol-opt.selected { background: #2d3436; border-color: #2d3436; }
+        
+        .color-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+        .color-opt { height: 40px; border-radius: 10px; cursor: pointer; border: 3px solid transparent; transition: transform 0.1s; }
+        .color-opt:hover { transform: scale(1.1); }
+        .color-opt.selected { border-color: #2d3436; }
+        
+        .symbol-opt.taken { opacity: 0.15; cursor: not-allowed; pointer-events: none; border: 2px dashed #d63031 !important; background: #ffeaa7; }
+
+        #loginForm { margin-top: 50px; }
+        #avatarForm, #gameArea { display: none; }
+        #waitingArea { font-size: 2.2rem; font-weight: bold; margin-top: 120px; }
+    </style>
+</head>
+<body>
+
+    <div id="loginForm">
+        <h2 style="font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">Join the Match! 🎮</h2>
+        <div class="box-container">
+            <input type="text" id="nameInput" placeholder="Your Name" required><br>
+            <input type="text" id="codeInput" placeholder="4-Digit Code" required><br>
+            <button id="joinBtn">CONNECT</button>
+            <div id="errorBadge"></div>
+        </div>
+    </div>
+
+    <div id="avatarForm">
+        <h2 style="font-size: 2.5rem; margin-bottom: 15px; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">Choose an emoji!</h2>
+        <div class="box-container">
+            <div class="preview-avatar" id="avatarPreviewCircle">🔥</div>
+            
+            <div class="selector-row-title">Pick an Emoji</div>
+            <div class="emoji-scroll-container" id="symbolGridContainer"></div>
+
+            <div class="selector-row-title">Pick a Background Color</div>
+            <div class="color-grid" id="colorGridContainer"></div>
+            
+            <p style="font-size:0.85rem; color:#95a5a6; margin-top:12px; font-weight:500;">Emojis are first-come, first-served!</p>
+        </div>
+    </div>
+
+    <div id="waitingArea">
+        <p>Awaiting host to start... 📡</p>
+    </div>
+
+    <div id="gameArea">
+        <div id="timer">3:00</div>
+        <div class="box-container">
+            <input type="text" id="answerInput" placeholder="Your Answer..."><br>
+            <button id="submitBtn" onclick="submitAnswerToServer()">SUBMIT</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let countdownInterval = null;
+        let myId = null;
+
+        const availableEmojis = [
+            "🔥","👑","🚀","👾","🍕","🐱","🦊","🫅","🎭","🎲","🎯","🧩","🎪","🎨","BOARD","💎","⚡","🌈","🍀","🌍",
+            "🐼","🐨","🐯","🦁","🐸","🐵","🦄","🦅","🦉","🦖","🐙","🦈","🍦","🍿","🍩","🍪","🥑","🌮","🎮","🎸",
+            "🏆","⚽","🏀","🎬","✈️","🛸","⚓️","🏝️","🌋","🔮","🎈","🎉","🎁","💡","🔑","📦","🍎","🥕","🍿","🧠"
+        ];
+        const availableColors = ["#0984e3","#6c5ce7","#00b894","#d63031","#e84393","#e17055"];
+
+        let currentChosenSymbol = "";
+        let currentChosenColor = "";
+
+        // Hide waiting area on absolute startup
+        document.getElementById('waitingArea').style.display = 'none';
+
+        function buildAvatarCustomizerUI() {
+            const symContainer = document.getElementById('symbolGridContainer');
+            symContainer.innerHTML = "";
+            availableEmojis.forEach(sym => {
+                const item = document.createElement('div');
+                item.className = 'symbol-opt';
+                item.innerText = sym;
+                item.id = `sym-opt-${sym}`;
+                item.onclick = () => selectSymbol(sym);
+                symContainer.appendChild(item);
+            });
+
+            const colContainer = document.getElementById('colorGridContainer');
+            colContainer.innerHTML = "";
+            availableColors.forEach(col => {
+                const item = document.createElement('div');
+                item.className = 'color-opt';
+                item.style.background = col;
+                item.id = `col-opt-${col}`;
+                item.onclick = () => selectColor(col);
+                colContainer.appendChild(item);
+            });
+            updateSelectionHighlights();
+        }
+
+        document.getElementById('joinBtn').addEventListener('click', function() {
+            const name = document.getElementById('nameInput').value;
+            const code = document.getElementById('codeInput').value;
+            if(!name || !code) return alert("Fill out your name and room code!");
+            document.getElementById('errorBadge').style.display = 'none';
+            socket.emit('joinRoom', { name, code });
+        });
+
+        socket.on('joinSuccess', (data) => {
+            myId = data.id;
+            currentChosenSymbol = data.defaultSymbol;
+            currentChosenColor = data.defaultColor;
+
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('avatarForm').style.display = 'block';
+            
+            buildAvatarCustomizerUI();
+            sendAvatarUpdate();
+        });
+
+        socket.on('joinError', (msg) => {
+            const badge = document.getElementById('errorBadge');
+            badge.innerText = msg;
+            badge.style.display = 'block';
+        });
+
+        function selectSymbol(sym) {
+            currentChosenSymbol = sym;
+            sendAvatarUpdate();
+        }
+
+        function selectColor(col) {
+            currentChosenColor = col;
+            sendAvatarUpdate();
+        }
+
+        function sendAvatarUpdate() {
+            document.getElementById('avatarPreviewCircle').innerText = currentChosenSymbol;
+            document.getElementById('avatarPreviewCircle').style.background = currentChosenColor;
+            updateSelectionHighlights();
+            socket.emit('updateAvatar', { symbol: currentChosenSymbol, color: currentChosenColor });
+        }
+
+        socket.on('syncTakenAvatars', (roster) => {
+            document.querySelectorAll('.symbol-opt').forEach(el => el.classList.remove('taken'));
+
+            roster.forEach(player => {
+                if (player.id === myId) return;
+                const takenElement = document.getElementById(`sym-opt-${player.avatarSymbol}`);
+                if (takenElement) {
+                    takenElement.classList.add('taken');
+                }
+            });
+        });
+
+        socket.on('avatarSelectionFailed', (data) => {
+            alert(data.message);
+            currentChosenSymbol = data.fallbackSymbol;
+            sendAvatarUpdate();
+        });
+
+        function updateSelectionHighlights() {
+            document.querySelectorAll('.symbol-opt').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.color-opt').forEach(el => el.classList.remove('selected'));
+            
+            const targetSym = document.getElementById(`sym-opt-${currentChosenSymbol}`);
+            if(targetSym) targetSym.classList.add('selected');
+            
+            const targetCol = document.getElementById(`col-opt-${currentChosenColor}`);
+            if(targetCol) targetCol.classList.add('selected');
+        }
+
+        socket.on('lockAndLoadMatch', () => {
+            document.getElementById('avatarForm').style.display = 'none';
+            document.getElementById('waitingArea').style.display = 'block';
+            document.getElementById('waitingArea').innerHTML = "<p>Match starting... Get ready! 🏁</p>";
+        });
+
+        socket.on('revealQuestionInput', () => {
+            document.getElementById('waitingArea').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+            
+            const inputField = document.getElementById('answerInput');
+            const submitButton = document.getElementById('submitBtn');
+            
+            inputField.disabled = false;
+            submitButton.disabled = false;
+            inputField.value = '';
+            inputField.focus();
+            
+            startTimer(180); 
+        });
+
+        function startTimer(duration) {
+            if (countdownInterval) clearInterval(countdownInterval);
+            let timer = duration;
+            const display = document.getElementById('timer');
+            display.textContent = "3:00";
+
+            countdownInterval = setInterval(() => {
+                let minutes = Math.floor(timer / 60);
+                let seconds = timer % 60;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+                display.textContent = minutes + ":" + seconds;
+                timer--;
+
+                if (timer < 0) {
+                    clearInterval(countdownInterval);
+                    display.textContent = "0:00";
+                    submitAnswerToServer(); 
+                    socket.emit('timerExpired');
+                }
+            }, 1000);
+        }
+
+        function submitAnswerToServer() {
+            if (countdownInterval) clearInterval(countdownInterval);
+            const ans = document.getElementById('answerInput').value;
+            socket.emit('submitAnswer', ans);
+            
+            document.getElementById('answerInput').disabled = true;
+            document.getElementById('submitBtn').disabled = true;
+            
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('waitingArea').style.display = 'block';
+            document.getElementById('waitingArea').innerHTML = "<p style='color: white;'>Answer locked in! Look at the board! 🔒</p>";
+        }
+
+        // FORCE TIMER TO STOP IMMEDIATELY WHEN HOST CLOSES INTERFACE
+        socket.on('stopStudentTimerNow', () => {
+            if (countdownInterval) clearInterval(countdownInterval);
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('waitingArea').style.display = 'block';
+            document.getElementById('waitingArea').innerHTML = "<p style='color: white;'>Question closed by host! 📋</p>";
+        });
+    </script>
+</body>
+</html>

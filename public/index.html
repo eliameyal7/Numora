@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Buzzer Login</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: 'Montserrat', Arial, sans-serif; background-color: #f5f7fa; color: #2d3436; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 90vh; }
+        .card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); width: 100%; max-width: 480px; text-align: center; box-sizing: border-box; }
+        h1 { font-size: 2.2rem; margin-top: 0; color: #6c5ce7; font-weight: 800; }
+        
+        .input-group { margin-bottom: 20px; text-align: left; }
+        label { font-weight: bold; font-size: 0.9rem; color: #b2bec3; text-transform: uppercase; display: block; margin-bottom: 8px; }
+        input[type="text"] { width: 100%; padding: 16px; border: 2px solid #dfe6e9; border-radius: 12px; font-size: 1.1rem; font-weight: 600; box-sizing: border-box; }
+        input[type="text"]:focus { border-color: #6c5ce7; outline: none; }
+        
+        .btn { background: #6c5ce7; color: white; border: none; width: 100%; padding: 16px; font-size: 1.2rem; font-weight: bold; border-radius: 12px; cursor: pointer; box-shadow: 0 5px 0 #4a3baf; }
+        .emoji-grid-selection { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 20px 0; max-height: 220px; overflow-y: auto; padding: 5px; border: 1px solid #dfe6e9; border-radius: 12px; }
+        .emoji-option-btn { background: #f1f2f6; border: 2px solid transparent; border-radius: 10px; font-size: 1.5rem; cursor: pointer; display: flex; justify-content: center; align-items: center; aspect-ratio: 1 / 1; padding: 0; box-sizing: border-box; }
+        .emoji-option-btn.selected { background: #e0f7fa; border-color: #00b894; transform: scale(1.05); }
+        .emoji-option-btn.taken { opacity: 0.25; cursor: not-allowed; background: #dfe6e9; }
+
+        .student-timer-clock { font-size: 3.5rem; font-weight: 900; color: #e84393; margin-bottom: 15px; font-variant-numeric: tabular-nums; }
+        .game-status-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; }
+        
+        /* FIX #3: Custom festive layout banner styles for individual final ranks */
+        .celebration-banner { font-size: 2.5rem; font-weight: 900; color: #6c5ce7; margin: 20px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .decor-star { color: #fdcb6e; font-size: 2rem; display: inline-block; animation: pulse 1.5s infinite alternate; }
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.2); } }
+    </style>
+</head>
+<body>
+
+    <div id="joinGateBlock" class="card">
+        <h1>Join the Match 🎮</h1>
+        <div class="input-group">
+            <label>Nickname</label>
+            <input type="text" id="studentNameInput" placeholder="Enter your name...">
+        </div>
+        <div class="input-group">
+            <label>8-Digit Room Code</label>
+            <input type="text" id="roomCodeInput" placeholder="e.g. 12345678" maxlength="8">
+        </div>
+        <button class="btn" onclick="sendJoinRequest()">ENTER GAME</button>
+    </div>
+
+    <div id="avatarCustomizationBlock" class="card" style="display: none;">
+        <h1>Pick Your Emoji 🙌</h1>
+        <div style="height: 10px;"></div>
+        <div class="emoji-grid-selection" id="avatarEmojiGridSystem"></div>
+    </div>
+
+    <div id="studentWorkspaceBlock" class="card" style="display: none; max-width: 600px;">
+        <div id="studentTimerCountdown" class="student-timer-clock" style="display: none;">3:00</div>
+        <div class="game-status-title" id="roundStatusHeader"></div>
+        
+        <div id="answerFormArea" style="display: none;">
+            <div class="input-group">
+                <input type="text" id="textAnswerSubmissionField" placeholder="Type your answer">
+            </div>
+            <button class="btn" style="background:#00b894; box-shadow:0 5px 0 #009473;" onclick="commitAnswerToMatch()">SUBMIT ANSWER 📝</button>
+        </div>
+    </div>
+
+    <div id="studentPlacementBlock" class="card" style="display: none;">
+        <div><span class="decor-star">✨</span> 🏆 <span class="decor-star">✨</span></div>
+        <div class="celebration-banner" id="placementDisplayValue">You got 1st place!</div>
+        <p style="color: #b2bec3; font-weight: bold; text-transform: uppercase;">GG! Thanks for playing!</p>
+    </div>
+
+    <script>
+        const socket = io();
+        let myPlayerId = null;
+        let selectedEmoji = "";
+        let selectedColor = "#0984e3";
+        let studentClockTicker = null;
+        let studentSecondsRemaining = 180;
+
+        const emojiList = [
+            "🔥","👑","🚀","👾","🍕","🐱","🦊","🫅","🎭","🎲","🎯","🧩","🎪","🎨","🛹","💎","⚡","🌈","🍀","🌍",
+            "🐼","🐨","🐯","🦁","🐸","🐵","🦄","🦅","🦉","🦖","🐙","🦈","🍦","🍿","🍩","🍪","🥑","🌮","🎮","🎸",
+            "🏆","⚽","🏀","🎬","✈️","🛸","⚓️","🏝️","🌋","🔮","🎈","🎉","🎁","💡","🔑","📦","🍎","🥕","🍿","🧠"
+        ];
+
+        function sendJoinRequest() {
+            const name = document.getElementById('studentNameInput').value.trim();
+            const code = document.getElementById('roomCodeInput').value.trim();
+            if(!name || !code) return alert("Please fill in both fields.");
+            socket.emit('joinRoom', { name, code });
+        }
+
+        socket.on('joinError', (msg) => alert(msg));
+
+        socket.on('joinSuccess', (data) => {
+            myPlayerId = data.id;
+            selectedEmoji = data.defaultSymbol;
+            selectedColor = data.defaultColor;
+            document.getElementById('joinGateBlock').style.display = "none";
+            document.getElementById('avatarCustomizationBlock').style.display = "block";
+            buildAvatarSelectMatrix([]);
+        });
+
+        function buildAvatarSelectMatrix(takenStudents) {
+            const grid = document.getElementById('avatarEmojiGridSystem');
+            grid.innerHTML = "";
+            emojiList.forEach(emo => {
+                const btn = document.createElement('button');
+                btn.className = 'emoji-option-btn';
+                btn.innerText = emo;
+                const isTaken = takenStudents.some(s => s.id !== myPlayerId && s.avatarSymbol === emo);
+                if(isTaken) {
+                    btn.classList.add('taken');
+                    btn.disabled = true;
+                } else {
+                    if(emo === selectedEmoji) btn.classList.add('selected');
+                    btn.onclick = () => selectEmojiOption(emo, btn);
+                }
+                grid.appendChild(btn);
+            });
+        }
+
+        function selectEmojiOption(emo, element) {
+            document.querySelectorAll('.emoji-option-btn').forEach(b => b.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedEmoji = emo;
+            socket.emit('updateAvatar', { symbol: selectedEmoji, color: selectedColor });
+        }
+
+        socket.on('syncTakenAvatars', (studentsList) => {
+            if(document.getElementById('avatarCustomizationBlock').style.display === "block") {
+                buildAvatarSelectMatrix(studentsList);
+            }
+        });
+
+        socket.on('lockAndLoadMatch', () => {
+            document.getElementById('avatarCustomizationBlock').style.display = "none";
+            document.getElementById('studentWorkspaceBlock').style.display = "block";
+            switchToPassiveWaitingState();
+        });
+
+        function switchToPassiveWaitingState() {
+            clearInterval(studentClockTicker);
+            document.getElementById('studentTimerCountdown').style.display = "none";
+            document.getElementById('roundStatusHeader').innerText = "Look at the Projector Board! 📋";
+            document.getElementById('roundStatusHeader').style.display = "block";
+            document.getElementById('answerFormArea').style.display = "none";
+        }
+
+        socket.on('resetToPassiveBoardWait', () => {
+            switchToPassiveWaitingState();
+        });
+
+        socket.on('revealQuestionInput', () => {
+            document.getElementById('roundStatusHeader').style.display = "none";
+            document.getElementById('textAnswerSubmissionField').value = "";
+            document.getElementById('answerFormArea').style.display = "block";
+            runLocalStudentClock();
+        });
+
+        function runLocalStudentClock() {
+            clearInterval(studentClockTicker);
+            studentSecondsRemaining = 180;
+            updateStudentClockDisplay();
+            document.getElementById('studentTimerCountdown').style.display = "block";
+
+            studentClockTicker = setInterval(() => {
+                studentSecondsRemaining--;
+                updateStudentClockDisplay();
+                if(studentSecondsRemaining <= 0) {
+                    clearInterval(studentClockTicker);
+                }
+            }, 1000);
+        }
+
+        function updateStudentClockDisplay() {
+            const m = Math.floor(studentSecondsRemaining / 60);
+            const s = studentSecondsRemaining % 60;
+            document.getElementById('studentTimerCountdown').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        function commitAnswerToMatch() {
+            const answer = document.getElementById('textAnswerSubmissionField').value;
+            socket.emit('submitAnswer', answer);
+            clearInterval(studentClockTicker);
+            
+            // Clear layout elements and substitute a confirmation response message
+            document.getElementById('studentTimerCountdown').style.display = "none";
+            document.getElementById('answerFormArea').style.display = "none";
+            
+            document.getElementById('roundStatusHeader').innerText = "Answer submitted! 🎉";
+            document.getElementById('roundStatusHeader').style.display = "block";
+        }
+
+        socket.on('stopStudentTimerNow', () => {
+            clearInterval(studentClockTicker);
+            document.getElementById('studentTimerCountdown').style.display = "none";
+            document.getElementById('roundStatusHeader').style.display = "none";
+            document.getElementById('answerFormArea').style.display = "none";
+        });
+
+        socket.on('matchEndPlacement', (data) => {
+            document.getElementById('studentWorkspaceBlock').style.display = "none";
+            
+            let suffixes = "th";
+            if (data.place === 1) suffixes = "st";
+            if (data.place === 2) suffixes = "nd";
+            if (data.place === 3) suffixes = "rd";
+
+            document.getElementById('placementDisplayValue').innerText = `You got ${data.place}${suffixes} place!`;
+            document.getElementById('studentPlacementBlock').style.display = "block";
+        });
+    </script>
+</body>
+</html>

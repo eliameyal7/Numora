@@ -1,0 +1,53 @@
+[
+  {
+    "id": "set-1781905394771",
+    "setName": "New Custom Set",
+    "categories": [
+      {
+        "categoryName": "Category 1",
+        "questions": [
+          {
+            "text": "hello",
+            "answer": "hello",
+            "points": 3
+          },
+          {
+            "text": "hi",
+            "answer": "hi",
+            "points": 3
+          },
+          {
+            "text": "bye",
+            "answer": "bye",
+            "points": 3
+          }
+        ]
+      },
+      {
+        "categoryName": "New Category 2",
+        "questions": [
+          {
+            "text": "cow",
+            "answer": "cow",
+            "points": 6
+          },
+          {
+            "text": "duck",
+            "answer": "duck",
+            "points": 6
+          },
+          {
+            "text": "moose",
+            "answer": "moose",
+            "points": 6
+          },
+          {
+            "text": "",
+            "answer": "",
+            "points": 6
+          }
+        ]
+      }
+    ]
+  }
+]

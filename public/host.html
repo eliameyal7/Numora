@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Competition Host Projector</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body { font-family: 'Montserrat', Arial, sans-serif; text-align: center; background-color: #f5f7fa; color: #2d3436; margin: 0; padding: 20px; }
+        .code-header-container { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin-left: auto; margin-right: auto; box-sizing: border-box; }
+        .huge-code-badge { font-size: 3.5rem; font-weight: 900; color: #6c5ce7; letter-spacing: 4px; margin: 0; }
+        .code-sublabel { font-size: 1.1rem; color: #b2bec3; font-weight: bold; text-transform: uppercase; }
+        .join-url-hint-box { text-align: right; font-size: 1.4rem; font-weight: bold; color: #2d3436; background: #f1f2f6; padding: 15px 25px; border-radius: 12px; border: 2px dashed #6c5ce7; }
+
+        .turn-banner { display: none; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.05); margin: 0 auto 30px auto; max-width: 1200px; font-size: 2.2rem; font-weight: 800; color: #2d3436; border-left: 10px solid #6c5ce7; }
+        .turn-banner span { color: #6c5ce7; text-decoration: underline; }
+
+        .top-control-bar { display: none; justify-content: flex-end; max-width: 1400px; margin: 0 auto 20px auto; }
+        .emergency-stop-btn { background: #d63031; color: white; border: none; padding: 12px 25px; font-size: 1rem; font-weight: bold; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 0 #b21f1f; }
+
+        #gameBoardGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin: 0 auto; max-width: 1200px; padding: 10px; }
+        .category-select-row { display: flex; flex-direction: column; justify-content: center; align-items: center; aspect-ratio: 1 / 1; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); cursor: pointer; border: 4px solid transparent; transition: all 0.25s ease; padding: 20px; box-sizing: border-box; }
+        .category-select-row:hover { border-color: #2d3436; transform: translateY(-5px); box-shadow: 0 12px 25px rgba(0,0,0,0.15); }
+        .category-title-text { font-size: 1.6rem; font-weight: 900; color: white; word-break: break-word; line-height: 1.3; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+        #categoryDetailView { display: none; background: white; padding: 40px; border-radius: 20px; max-width: 900px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        #currentCategoryTitleHeader { font-size: 2.2rem; margin-top: 0; color: #2d3436; margin-bottom: 30px; }
+        
+        .questions-button-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .q-cell-btn { background: #6c5ce7; color: white; border: none; border-radius: 12px; font-size: 1.3rem; font-weight: bold; cursor: pointer; padding: 20px 10px; box-shadow: 0 5px 0 #4a3baf; }
+        .q-cell-btn.disabled { background: #dfe6e9 !important; box-shadow: 0 5px 0 #b2bec3 !important; cursor: not-allowed; opacity: 0.5; color: #b2bec3; }
+        
+        .back-to-board-btn { background: #74b9ff; color: white; border: none; padding: 12px 30px; font-size: 1.2rem; font-weight: bold; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 0 #0984e3; }
+
+        .lobby-screen, .focus-question-screen { background: white; border-radius: 30px; padding: 50px; max-width: 800px; margin: 40px auto; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .student-pill { display: inline-flex; align-items: center; gap: 10px; background: #f1f2f6; color: #2d3436; padding: 10px 20px; border-radius: 50px; font-weight: bold; font-size: 1.2rem; margin: 8px; }
+        .pill-emoji { width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.3rem; }
+
+        .start-match-btn { background: #00b894; color: white; font-size: 2rem; font-weight: bold; padding: 15px 40px; border: none; border-radius: 20px; cursor: pointer; box-shadow: 0 6px 0 #009473; margin-top: 30px; }
+        #activeQuestionText { font-size: 3rem; font-weight: bold; margin-bottom: 25px; color: #2d3436; line-height: 1.3; }
+        
+        /* Layout configuration style mapping rule logic block for scaling Geometry Images */
+        .question-canvas-img { max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 16px; margin: 0 auto 30px auto; box-shadow: 0 8px 20px rgba(0,0,0,0.06); display: none; }
+
+        #answerRevealBox { font-size: 2.5rem; background: #00b894; color: white; padding: 20px; border-radius: 15px; display: none; font-weight: bold; margin-top: 30px; }
+        
+        .leaderboard-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 1.4rem; background: #f8f9fa; border-radius: 15px; overflow: hidden; color: #2d3436; }
+        .leaderboard-table th { background: #6c5ce7; padding: 15px; color: white; }
+        .leaderboard-table td { padding: 15px; border-bottom: 1px solid #dfe6e9; }
+    </style>
+</head>
+<body>
+
+    <div id="joinCodeHeaderBlock" class="code-header-container">
+        <div style="text-align: left;">
+            <div class="code-sublabel">Join Code</div>
+            <h1 class="huge-code-badge" id="roomCodeDisplay">--------</h1>
+        </div>
+        <div class="join-url-hint-box">
+            🌐 Join at: <span style="color:#6c5ce7;">http://localhost:3000</span>
+        </div>
+    </div>
+
+    <div id="turnChoiceIndicator" class="turn-banner">
+        <span id="activePickerName">Someone</span>, choose the next category!
+    </div>
+
+    <div id="activeMatchControlBar" class="top-control-bar">
+        <button class="emergency-stop-btn" onclick="triggerEarlyGameOver()">🏁 End Game & Show Results</button>
+    </div>
+
+    <div id="gameBoardView">
+        <div id="gameBoardGrid"></div>
+    </div>
+
+    <div id="categoryDetailView">
+        <h2 id="currentCategoryTitleHeader">Category Title</h2>
+        <div class="questions-button-grid" id="categoryQuestionsContainer"></div>
+        <button class="back-to-board-btn" onclick="closeCategoryWorkspace()">⬅️ Back to Categories</button>
+    </div>
+
+    <div id="lobbyView" class="lobby-screen">
+        <h2 style="font-size: 2.5rem; margin-top: 0; color: #2d3436;">Waiting Room 🚪</h2>
+        <p style="font-size: 1.3rem; color: #b2bec3;">Enter the code above on your screen to join!</p>
+        <div id="studentsLobbyContainer" style="margin: 30px 0; min-height: 100px;"></div>
+        <button class="start-match-btn" onclick="startLiveMatch()">LAUNCH MATCH 🚀</button>
+    </div>
+
+    <div id="questionFocusView" class="focus-question-screen" style="display:none;">
+        <div id="activeQuestionText">Question Loading...</div>
+        
+        <img id="activeQuestionImg" class="question-canvas-img" src="" alt="Geometry/Graph Asset Visual">
+
+        <div id="answerRevealBox">
+            CORRECT ANSWER: <span id="answerSpan"></span>
+            <div style="margin-top: 30px;">
+                <button class="start-match-btn" style="background:#74b9ff; box-shadow:0 6px 0 #0984e3; font-size:1.5rem; padding:12px 30px;" onclick="returnFromQuestion()">➡️ Back to Categories</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="leaderboardView" class="focus-question-screen" style="display:none; max-width: 900px;">
+        <h2 style="font-size: 3rem; margin-top: 0; color: #6c5ce7;">👑 Final Results 👑</h2>
+        <table class="leaderboard-table">
+            <thead><tr><th>Rank</th><th>Player</th><th>Total Score</th></tr></thead>
+            <tbody id="leaderboardRows"></tbody>
+        </table>
+        <button class="start-match-btn" onclick="window.close()">CLOSE GAME BOARD ❌</button>
+    </div>
+
+    <script>
+        const socket = io();
+        let loadedGameSet = null;
+        let activeCategoryIndex = null;
+        let countdownTickerInterval = null;
+        let clockSecondsRemaining = 180;
+        let currentRoster = [];
+
+        const vibrantColors = ["#ff7675", "#fdcb6e", "#00b894", "#0984e3", "#e84393", "#6c5ce7", "#e17055", "#00cec9"];
+
+        function setupDynamicBoardData() {
+            const savedData = localStorage.getItem('chosenGameSet');
+            if(!savedData) {
+                alert("No question pack chosen! Go to creator.html and click Play.");
+                window.location.href = "/creator.html";
+                return;
+            }
+            loadedGameSet = JSON.parse(savedData);
+            socket.emit('selectActiveSet', loadedGameSet);
+            buildCategoryListInterface();
+        }
+
+        function buildCategoryListInterface() {
+            const boardGrid = document.getElementById('gameBoardGrid');
+            boardGrid.innerHTML = "";
+            loadedGameSet.categories.forEach((cat, catIdx) => {
+                const row = document.createElement('div');
+                row.className = 'category-select-row';
+                row.style.backgroundColor = vibrantColors[catIdx % vibrantColors.length];
+                row.onclick = () => openCategoryWorkspace(catIdx);
+                const title = document.createElement('div');
+                title.className = 'category-title-text';
+                title.innerText = cat.categoryName;
+                row.appendChild(title);
+                boardGrid.appendChild(row);
+            });
+            document.getElementById('gameBoardView').style.display = "none";
+        }
+
+        function openCategoryWorkspace(catIdx) {
+            activeCategoryIndex = catIdx;
+            const cat = loadedGameSet.categories[catIdx];
+            document.getElementById('currentCategoryTitleHeader').innerText = cat.categoryName;
+            document.getElementById('gameBoardView').style.display = "none";
+            document.getElementById('turnChoiceIndicator').style.display = "none";
+            document.getElementById('categoryDetailView').style.display = "block";
+
+            const container = document.getElementById('categoryQuestionsContainer');
+            container.innerHTML = "";
+            cat.questions.forEach((q, qIdx) => {
+                const btn = document.createElement('button');
+                btn.className = 'q-cell-btn';
+                btn.innerText = `Question ${qIdx + 1}`;
+                btn.id = `cell-btn-${catIdx}-${qIdx}`;
+                if (q.alreadyPlayed) {
+                    btn.classList.add('disabled');
+                    btn.disabled = true;
+                } else {
+                    btn.onclick = () => launchQuestionIntoPlay(catIdx, qIdx);
+                }
+                container.appendChild(btn);
+            });
+        }
+
+        function closeCategoryWorkspace() {
+            document.getElementById('categoryDetailView').style.display = "none";
+            document.getElementById('gameBoardView').style.display = "block";
+            document.getElementById('turnChoiceIndicator').style.display = "block";
+        }
+
+        socket.emit('registerHost');
+        socket.on('initRoomCode', (code) => {
+            document.getElementById('roomCodeDisplay').innerText = code;
+        });
+
+        socket.on('updateLobby', (studentsList) => {
+            currentRoster = studentsList;
+            const container = document.getElementById('studentsLobbyContainer');
+            container.innerHTML = "";
+            if(studentsList.length === 0) {
+                container.innerHTML = `<p style="color: #b2bec3; font-style: italic; font-size:1.2rem;">Waiting for students to join...</p>`;
+                return;
+            }
+            studentsList.forEach(student => {
+                const pill = document.createElement('div');
+                pill.className = 'student-pill';
+                pill.innerHTML = `<div class="pill-emoji" style="background:${student.avatarColor};">${student.avatarSymbol}</div><div>${student.name}</div>`;
+                container.appendChild(pill);
+            });
+        });
+
+        function startLiveMatch() {
+            socket.emit('signalGameStart');
+            document.getElementById('lobbyView').style.display = "none";
+            document.getElementById('joinCodeHeaderBlock').style.display = "none";
+            document.getElementById('activeMatchControlBar').style.display = "flex";
+            
+            if(currentRoster.length > 0) {
+                const randomStudent = currentRoster[Math.floor(Math.random() * currentRoster.length)];
+                document.getElementById('activePickerName').innerText = randomStudent.name;
+            } else {
+                document.getElementById('activePickerName').innerText = "Someone";
+            }
+            document.getElementById('turnChoiceIndicator').style.display = "block";
+            document.getElementById('gameBoardView').style.display = "block";
+        }
+
+        function launchQuestionIntoPlay(catIdx, qIdx) {
+            const questionData = loadedGameSet.categories[catIdx].questions[qIdx];
+            questionData.alreadyPlayed = true;
+
+            document.getElementById('categoryDetailView').style.display = "none";
+            document.getElementById('questionFocusView').style.display = "block";
+            document.getElementById('answerRevealBox').style.display = "none";
+            
+            document.getElementById('activeQuestionText').innerText = questionData.text;
+            document.getElementById('answerSpan').innerText = questionData.answer;
+
+            // Image handling logic routine setup mapping array verification rules
+            const imgElement = document.getElementById('activeQuestionImg');
+            if (questionData.image && questionData.image.trim() !== "") {
+                imgElement.src = questionData.image.trim();
+                imgElement.style.display = "block";
+            } else {
+                imgElement.src = "";
+                imgElement.style.display = "none";
+            }
+
+            socket.emit('startQuestion', questionData);
+            beginAutomatedRoundTimer();
+        }
+
+        function beginAutomatedRoundTimer() {
+            clearInterval(countdownTickerInterval);
+            clockSecondsRemaining = 180;
+
+            countdownTickerInterval = setInterval(() => {
+                clockSecondsRemaining--;
+                if (clockSecondsRemaining <= 0) {
+                    clearInterval(countdownTickerInterval);
+                    socket.emit('timerExpired');
+                }
+            }, 1000);
+        }
+
+        socket.on('forceRevealAnswer', (answerText, fastestStudentName) => {
+            clearInterval(countdownTickerInterval);
+            document.getElementById('answerRevealBox').style.display = "block";
+            if (fastestStudentName) {
+                document.getElementById('activePickerName').innerText = fastestStudentName;
+            }
+        });
+
+        function returnFromQuestion() {
+            socket.emit('hostReturningToMenu');
+            document.getElementById('questionFocusView').style.display = "none";
+            
+            let extraQuestionsLeft = false;
+            loadedGameSet.categories.forEach(c => {
+                c.questions.forEach(q => {
+                    if(!q.alreadyPlayed) extraQuestionsLeft = true;
+                });
+            });
+
+            if (!extraQuestionsLeft) {
+                triggerEarlyGameOver();
+            } else {
+                document.getElementById('gameBoardView').style.display = "block";
+                document.getElementById('turnChoiceIndicator').style.display = "block";
+            }
+        }
+
+        function triggerEarlyGameOver() {
+            socket.emit('questionFinishedByHost');
+            socket.emit('requestLeaderboard');
+        }
+
+        socket.on('finalLeaderboard', (leaderboard) => {
+            document.getElementById('gameBoardView').style.display = "none";
+            document.getElementById('categoryDetailView').style.display = "none";
+            document.getElementById('questionFocusView').style.display = "none";
+            document.getElementById('activeMatchControlBar').style.display = "none";
+            document.getElementById('turnChoiceIndicator').style.display = "none";
+            document.getElementById('leaderboardView').style.display = "block";
+
+            const rowContainer = document.getElementById('leaderboardRows');
+            rowContainer.innerHTML = "";
+            leaderboard.forEach((player, index) => {
+                let rankCrown = index + 1;
+                if (index === 0) rankCrown = "🥇";
+                if (index === 1) rankCrown = "🥈";
+                if (index === 2) rankCrown = "🥉";
+                const row = document.createElement('tr');
+                row.innerHTML = `<td style="font-weight:bold; font-size:1.6rem;">${rankCrown}</td><td style="display:flex; align-items:center; gap:10px; font-weight:600;"><span style="background:${player.avatarColor}; padding:5px 10px; border-radius:50%;">${player.avatarSymbol}</span> ${player.name}</td><td style="font-weight:bold; color:#00b894;">${player.score} Points</td>`;
+                rowContainer.appendChild(row);
+            });
+        });
+
+        setupDynamicBoardData();
+    </script>
+</body>
+</html>
