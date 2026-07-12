@@ -5,8 +5,8 @@ const fs = require('fs'); // Built-in helper to read/write files
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
+const FileStore = require('session-file-store')(session); // <-- CHANGED: Imported file store adapter
 const { OpenAI } = require('openai');
-const FileStore = require('session-file-store')(require('express-session'));
 
 const app = express();
 const server = http.createServer(app);
@@ -25,6 +25,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Configure secure stateful user tracking session layers
 app.use(session({
+    store: new FileStore({}), // <-- CHANGED: Replaced unstable default MemoryStore with active file storage
     secret: 'math-league-secret-key-2026',
     resave: false,
     saveUninitialized: false,
@@ -433,6 +434,5 @@ io.on('connection', (socket) => {
     });
 });
 
-// CHANGED SECTION: Dynamically detect cloud hosting ports or default to 3000 locally
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
