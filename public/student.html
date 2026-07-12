@@ -17,6 +17,10 @@
         
         #errorBadge { color: #d63031; font-weight: bold; font-size: 1.1rem; margin-top: 15px; display: none; background: #ffeaa7; padding: 10px; border-radius: 8px; }
 
+        /* Styling for the forgot link */
+        .forgot-link { display: block; margin-top: 15px; color: #0984e3; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer; }
+        .forgot-link:hover { text-decoration: underline; }
+
         .preview-avatar { width: 90px; height: 90px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold; margin: 0 auto 15px auto; box-shadow: 0 6px 15px rgba(0,0,0,0.15); transition: background 0.2s; text-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
         
         .selector-row-title { font-size: 0.9rem; text-transform: uppercase; font-weight: bold; color: #b2bec3; letter-spacing: 1px; margin: 15px 0 8px 0; text-align: left; padding-left: 5px; }
@@ -47,6 +51,7 @@
             <input type="text" id="nameInput" placeholder="Your Name" required><br>
             <input type="text" id="codeInput" placeholder="8-Digit Code" required><br>
             <button id="joinBtn">CONNECT</button>
+            <a class="forgot-link" id="forgotBtn">Forgot your code/password?</a>
             <div id="errorBadge"></div>
         </div>
     </div>
@@ -94,10 +99,9 @@
         let currentChosenSymbol = "";
         let currentChosenColor = "";
 
-        // Hide waiting area on absolute startup
         document.getElementById('waitingArea').style.display = 'none';
 
-        // Keyboard Event Handlers for "Enter" key
+        // Keyboard Event Handlers
         document.getElementById('nameInput').addEventListener('keydown', handleLoginKeydown);
         document.getElementById('codeInput').addEventListener('keydown', handleLoginKeydown);
         document.getElementById('answerInput').addEventListener('keydown', handleAnswerKeydown);
@@ -112,12 +116,23 @@
         function handleAnswerKeydown(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                // Prevent accidental duplicate submission tasks if already disabled
                 if (!document.getElementById('answerInput').disabled) {
                     submitAnswerToServer();
                 }
             }
         }
+
+        // Forgot Password/Code Trigger
+        document.getElementById('forgotBtn').addEventListener('click', function() {
+            const name = document.getElementById('nameInput').value.trim();
+            if (!name) {
+                alert("Please type your name first so the host knows who is asking!");
+                return;
+            }
+            // Emits an event to the server to handle the recovery
+            socket.emit('requestPasswordRecovery', { name });
+            alert("Sent a help request to the host screen! Hang tight.");
+        });
 
         function buildAvatarCustomizerUI() {
             const symContainer = document.getElementById('symbolGridContainer');
@@ -274,7 +289,6 @@
             document.getElementById('waitingArea').innerHTML = "<p style='color: white;'>Answer locked in! Look at the board! 🔒</p>";
         }
 
-        // FORCE TIMER TO STOP IMMEDIATELY WHEN HOST CLOSES INTERFACE
         socket.on('stopStudentTimerNow', () => {
             if (countdownInterval) clearInterval(countdownInterval);
             document.getElementById('gameArea').style.display = 'none';
