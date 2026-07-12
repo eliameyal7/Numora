@@ -115,6 +115,37 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
+// PASSWORD RECOVERY ENDPOINT FOR HOST LOGIN
+app.post('/api/auth/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ error: "Please enter your email address first." });
+
+        const users = loadUsers();
+        const normalizedEmail = email.toLowerCase().trim();
+        const userIndex = users.findIndex(u => u.email === normalizedEmail);
+
+        if (userIndex === -1) {
+            return res.status(404).json({ error: "No account found with that email address." });
+        }
+
+        // Set a recognizable temporary fallback password
+        const tempPassword = "Password123!";
+        const hashedPassword = await bcrypt.hash(tempPassword, 10);
+        
+        // Update user storage
+        users[userIndex].password = hashedPassword;
+        saveUsers(users);
+
+        res.json({ 
+            success: true, 
+            message: `Password has been reset! Please login using your temporary password: ${tempPassword}` 
+        });
+    } catch (err) {
+        res.status(500).json({ error: "Error resetting password." });
+    }
+});
+
 app.post('/api/auth/logout', (req, res) => {
     req.session.destroy();
     res.json({ success: true });
@@ -125,7 +156,6 @@ function requireLogin(req, res, next) {
     next();
 }
 
-// FIXES (1), (2), AND (3): AI Constraints Setup
 app.post('/api/ai/scan-worksheet', requireLogin, async (req, res) => {
     try {
         const { base64Image } = req.body;
@@ -158,7 +188,6 @@ app.post('/api/ai/scan-worksheet', requireLogin, async (req, res) => {
         });
 
         const parsedJson = JSON.parse(response.choices[0].message.content);
-        // Safety truncation reinforcement rule
         if (parsedJson.questions && parsedJson.questions.length > 8) {
             parsedJson.questions = parsedJson.questions.slice(0, 8);
         }
@@ -288,11 +317,10 @@ io.on('connection', (socket) => {
         const totalStudents = Object.keys(room.students).length;
         if (room.submissionsThisRound >= totalStudents) {
             io.to(room.hostSocketId).emit('forceRevealAnswer', room.currentQuestion.answer);
-            io.to(room.code).emit('timeOutLock'); // Force lock screens
+            io.to(room.code).emit('timeOutLock'); 
         }
     });
 
-    // FIXES (6): Forces student screen lock out state when timer runs out
     socket.on('timerExpired', () => {
         const room = findRoomByHostSocketId(socket.id);
         if (room) {
