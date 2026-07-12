@@ -97,6 +97,28 @@
         // Hide waiting area on absolute startup
         document.getElementById('waitingArea').style.display = 'none';
 
+        // Keyboard Event Handlers for "Enter" key
+        document.getElementById('nameInput').addEventListener('keydown', handleLoginKeydown);
+        document.getElementById('codeInput').addEventListener('keydown', handleLoginKeydown);
+        document.getElementById('answerInput').addEventListener('keydown', handleAnswerKeydown);
+
+        function handleLoginKeydown(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                processRoomJoin();
+            }
+        }
+
+        function handleAnswerKeydown(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                // Prevent accidental duplicate submission tasks if already disabled
+                if (!document.getElementById('answerInput').disabled) {
+                    submitAnswerToServer();
+                }
+            }
+        }
+
         function buildAvatarCustomizerUI() {
             const symContainer = document.getElementById('symbolGridContainer');
             symContainer.innerHTML = "";
@@ -122,13 +144,15 @@
             updateSelectionHighlights();
         }
 
-        document.getElementById('joinBtn').addEventListener('click', function() {
-            const name = document.getElementById('nameInput').value;
-            const code = document.getElementById('codeInput').value;
+        function processRoomJoin() {
+            const name = document.getElementById('nameInput').value.trim();
+            const code = document.getElementById('codeInput').value.trim();
             if(!name || !code) return alert("Fill out your name and room code!");
             document.getElementById('errorBadge').style.display = 'none';
             socket.emit('joinRoom', { name, code });
-        });
+        }
+
+        document.getElementById('joinBtn').addEventListener('click', processRoomJoin);
 
         socket.on('joinSuccess', (data) => {
             myId = data.id;
