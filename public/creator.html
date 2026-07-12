@@ -75,7 +75,7 @@
             <p class="subtitle">Create and organize custom question sets for your live match boards.</p>
         </div>
         <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
-            <button class="student-portal-btn" onclick="window.location.href='/student.html'">🎮 Student Portal</button>
+            <button class="student-portal-btn" onclick="window.location.href='/'">🎮 Student Portal</button>
             <button class="settings-trigger-btn" onclick="toggleSettingsModal(true)">⚙️</button>
         </div>
     </div>
@@ -115,7 +115,7 @@
                 </div>
 
                 <div id="aiPreviewArea" style="display:none; margin-top:20px;">
-                    <h4 style="margin:0 0 10px 0; color:#2d3436;">Extracted Question Candidates</h4>
+                    <h4 style="margin:0 0 10px 0; color:#2d3436;">Extracted Question Candidates (Max 8)</h4>
                     <table class="ai-table">
                         <thead>
                             <tr>
@@ -171,12 +171,10 @@
         async function fetchSavedSets() {
             try {
                 const response = await fetch('/api/sets');
-                
                 if (response.status === 401) {
                     window.location.href = "/login.html";
                     return;
                 }
-                
                 allSetsMemory = await response.json();
                 renderSidebarList();
             } catch (err) {
@@ -187,12 +185,10 @@
         function renderSidebarList() {
             const container = document.getElementById('setsListContainer');
             container.innerHTML = "";
-            
             if(allSetsMemory.length === 0) {
                 container.innerHTML = `<p style="color: #b2bec3; font-style: italic;">No sets created yet.</p>`;
                 return;
             }
-
             allSetsMemory.forEach((set, idx) => {
                 const row = document.createElement('div');
                 row.className = 'sidebar-set-row';
@@ -220,16 +216,13 @@
         async function deleteEntireSet(idx) {
             const confirmDelete = confirm(`Are you sure you want to delete "${allSetsMemory[idx].setName || 'Untitled Set'}" permanently?`);
             if (!confirmDelete) return;
-
             allSetsMemory.splice(idx, 1);
-
             if (activeSetIndex === idx) {
                 activeSetIndex = null;
                 document.getElementById('editorWorkspace').style.display = "none";
             } else if (activeSetIndex > idx) {
                 activeSetIndex--;
             }
-
             try {
                 const response = await fetch('/api/sets', {
                     method: 'POST',
@@ -237,9 +230,7 @@
                     body: JSON.stringify(allSetsMemory)
                 });
                 const resData = await response.json();
-                if(resData.success) {
-                    renderSidebarList();
-                }
+                if(resData.success) { renderSidebarList(); }
             } catch(err) {
                 alert("Error deleting set from file.");
             }
@@ -252,9 +243,7 @@
                 categories: [
                     {
                         categoryName: "Category 1",
-                        questions: [
-                            { text: "", answer: "", image: "" }
-                        ]
+                        questions: [ { text: "", answer: "", image: "" } ]
                     }
                 ]
             };
@@ -267,15 +256,12 @@
         function openSetInWorkspace(idx) {
             activeSetIndex = idx;
             renderSidebarList();
-            
             document.getElementById('editorWorkspace').style.display = "block";
             const currentSet = allSetsMemory[activeSetIndex];
             document.getElementById('editSetNameInput').value = currentSet.setName;
-            
             document.getElementById('aiPreviewArea').style.display = "none";
             document.getElementById('aiUploadLabel').innerText = "📂 Click or Drag Worksheet Photo Here";
             pendingAiQuestionsMemory = [];
-
             renderWorkspaceCategories();
         }
 
@@ -287,7 +273,6 @@
             currentSet.categories.forEach((cat, catIdx) => {
                 const catBlock = document.createElement('div');
                 catBlock.className = 'category-block';
-                
                 catBlock.innerHTML = `
                     <div class="category-header">
                         <input type="text" value="${cat.categoryName}" style="font-size: 1.3rem; width: 60%; font-weight: bold; background: transparent; border: none; border-bottom: 2px solid #dfe6e9; border-radius:0;" onchange="updateCategoryName(${catIdx}, this.value)" placeholder="Category Name">
@@ -296,7 +281,6 @@
                     <div id="q-list-cat-${catIdx}"></div>
                     <div class="add-link" onclick="addQuestionToCategory(${catIdx})">➕ Add Question row</div>
                 `;
-                
                 container.appendChild(catBlock);
                 
                 const qListContainer = document.getElementById(`q-list-cat-${catIdx}`);
@@ -306,7 +290,7 @@
                     row.innerHTML = `
                         <div class="q-num">${qIdx + 1}</div>
                         <input type="text" value="${q.text || ''}" placeholder="Type question statement here..." onchange="updateQuestionText(${catIdx}, ${qIdx}, this.value)">
-                        <input type="text" value="${q.image || ''}" placeholder="Image URL (Optional)" onchange="updateQuestionImage(${catIdx}, ${qIdx}, this.value)">
+                        <input type="text" value="${q.image || ''}" placeholder="Image or Geometry Visual Layout" onchange="updateQuestionImage(${catIdx}, ${qIdx}, this.value)">
                         <input type="text" value="${q.answer || ''}" placeholder="Correct Answer" onchange="updateQuestionAnswer(${catIdx}, ${qIdx}, this.value)">
                         <button style="background: none; border: none; cursor: pointer; font-size: 1.2rem;" onclick="deleteQuestion(${catIdx}, ${qIdx})">❌</button>
                     `;
@@ -346,7 +330,6 @@
         async function saveCurrentSetToServer() {
             const titleInput = document.getElementById('editSetNameInput').value.trim();
             allSetsMemory[activeSetIndex].setName = titleInput || "Untitled Set";
-            
             try {
                 const response = await fetch('/api/sets', {
                     method: 'POST',
@@ -379,7 +362,6 @@
             const reader = new FileReader();
             reader.onloadend = async function () {
                 const base64Data = reader.result;
-
                 try {
                     const response = await fetch('/api/ai/scan-worksheet', {
                         method: 'POST',
@@ -395,7 +377,8 @@
                         return;
                     }
 
-                    pendingAiQuestionsMemory = data.questions;
+                    // CHANGED: Restrict raw array parsing explicitly down to a maximum of 8 questions
+                    pendingAiQuestionsMemory = data.questions.slice(0, 8);
                     
                     const tbody = document.getElementById('aiTablePreviewBody');
                     tbody.innerHTML = "";
@@ -403,14 +386,13 @@
                     pendingAiQuestionsMemory.forEach(q => {
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
-                            <td style="font-weight: 500;">${q.text}</td>
+                            <td style="font-weight: 500;">${q.text} ${q.image ? `<br><small style="color:#6c5ce7; font-style:italic;">Visual Info: ${q.image}</small>` : ''}</td>
                             <td style="color: #00b894; font-weight: bold;">${q.answer}</td>
                         `;
                         tbody.appendChild(tr);
                     });
 
                     document.getElementById('aiPreviewArea').style.display = "block";
-
                 } catch (err) {
                     document.getElementById('aiLoadingStatus').style.display = "none";
                     alert("Network connection error handling image scan processing.");
@@ -419,28 +401,28 @@
             reader.readAsDataURL(file);
         }
 
+        // CHANGED: Implemented Rules (1) & (2) here to dynamically generate a clean separate category row
         function importAiQuestionsIntoCurrentWorkspace() {
             if (!pendingAiQuestionsMemory || pendingAiQuestionsMemory.length === 0) return;
 
             const currentSet = allSetsMemory[activeSetIndex];
+            const newCategoryIndex = currentSet.categories.length + 1;
             
-            if (currentSet.categories.length === 0) {
-                currentSet.categories.push({ categoryName: "AI Scanned Pack", questions: [] });
-            }
-
-            const targetCategory = currentSet.categories[0];
-
-            if (targetCategory.questions.length === 1 && !targetCategory.questions[0].text && !targetCategory.questions[0].answer) {
-                targetCategory.questions = [];
-            }
+            // Generate distinct custom category properties housing up to 8 rows max
+            const targetCategory = {
+                categoryName: `Worksheet Import #${newCategoryIndex}`,
+                questions: []
+            };
 
             pendingAiQuestionsMemory.forEach(aiQ => {
                 targetCategory.questions.push({
                     text: aiQ.text,
                     answer: aiQ.answer,
-                    image: ""
+                    image: aiQ.image || "" // Rule (3): Preserves picture layout references cleanly
                 });
             });
+
+            currentSet.categories.push(targetCategory);
 
             document.getElementById('aiPreviewArea').style.display = "none";
             document.getElementById('aiUploadLabel').innerText = "📂 Click or Drag Worksheet Photo Here";
@@ -448,7 +430,7 @@
             pendingAiQuestionsMemory = [];
 
             renderWorkspaceCategories();
-            alert("Success! Questions imported directly into your primary workspace row setup block below. Make sure to click Save Changes! 💾");
+            alert("Success! Created a separate category row containing up to 8 elements. Don't forget to click Save Changes! 💾");
         }
 
         fetchSavedSets();
