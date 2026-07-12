@@ -1,141 +1,101 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const fs = require('fs'); // Built-in helper to read/write files
+const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
-const FileStore = require('session-file-store')(session); // <-- CHANGED: Imported file store adapter
+const FileStore = require('session-file-store')(session);
 const { OpenAI } = require('openai');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Initialize OpenAI with your private API key
 const openai = new OpenAI({
     apiKey: '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'
 });
 
 app.use(express.static('public'));
-
-// Increase payload limit bounds so large image uploads don't crash the server
 app.use(express.json({ limit: '50mb' })); 
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Configure secure stateful user tracking session layers
 app.use(session({
-    store: new FileStore({}), // <-- CHANGED: Replaced unstable default MemoryStore with active file storage
+    store: new FileStore({}),
     secret: 'math-league-secret-key-2026',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 1000 * 60 * 60 * 24 } // Valid for 24 Hours
+    cookie: { maxAge: 1000 * 60 * 60 * 24 }
 }));
 
 const SETS_FILE = path.join(__dirname, 'sets.json');
 const USERS_FILE = path.join(__dirname, 'users.json');
 
-// Helper function to read user registrations safely
 function loadUsers() {
     try {
         if (!fs.existsSync(USERS_FILE)) return [];
         const data = fs.readFileSync(USERS_FILE, 'utf8');
         return JSON.parse(data || '[]');
     } catch (err) {
-        console.error("Error reading users.json:", err);
         return [];
     }
 }
 
-// Helper function to save registered user accounts safely
 function saveUsers(usersArray) {
     try {
         fs.writeFileSync(USERS_FILE, JSON.stringify(usersArray, null, 2), 'utf8');
-    } catch (err) {
-        console.error("Error writing to users.json:", err);
-    }
+    } catch (err) {}
 }
 
-// Helper function to read sets from our json file safely
 function loadSavedSets() {
     try {
-        if (!fs.existsSync(SETS_FILE)) {
-            return [];
-        }
+        if (!fs.existsSync(SETS_FILE)) return [];
         const data = fs.readFileSync(SETS_FILE, 'utf8');
         return JSON.parse(data || '[]');
     } catch (err) {
-        console.error("Error reading sets.json:", err);
         return [];
     }
 }
 
-// Helper function to save updates back to the json file
 function saveSetsToFile(setsArray) {
     try {
         fs.writeFileSync(SETS_FILE, JSON.stringify(setsArray, null, 2), 'utf8');
-    } catch (err) {
-        console.error("Error writing to sets.json:", err);
-    }
+    } catch (err) {}
 }
 
-// Generates a random 8-digit room code string
 function generateRandomCode() {
     return Math.floor(10000000 + Math.random() * 90000000).toString();
 }
 
-// Map tracking all active live rooms simultaneously (Key: roomCode -> Value: roomData)
 let activeRooms = {};
 
-// Helper to look up which room a student belongs to based on their socket ID
 function findRoomByStudentSocketId(socketId) {
     for (const code in activeRooms) {
-        if (activeRooms[code].students[socketId]) {
-            return activeRooms[code];
-        }
+        if (activeRooms[code].students[socketId]) return activeRooms[code];
     }
     return null;
 }
 
-// Helper to look up a room by the host's socket ID
 function findRoomByHostSocketId(socketId) {
     for (const code in activeRooms) {
-        if (activeRooms[code].hostSocketId === socketId) {
-            return activeRooms[code];
-        }
+        if (activeRooms[code].hostSocketId === socketId) return activeRooms[code];
     }
     return null;
 }
-
-console.log(`=========================================`);
-console.log(`🎰 AI-INFUSED MULTI-ROOM SERVER READY `);
-console.log(`=========================================`);
-
-// ==========================================
-// 🔐 USER ACCOUNT AUTHENTICATION ROUTES
-// ==========================================
 
 app.post('/api/auth/signup', async (req, res) => {
     try {
         const { email, password } = req.body;
-        if (!email || !password) {
-            return res.status(400).json({ error: "Missing required fields." });
-        }
-
+        if (!email || !password) return res.status(400).json({ error: "Missing fields." });
         const users = loadUsers();
         const normalizedEmail = email.toLowerCase().trim();
-
-        if (users.find(u => u.email === normalizedEmail)) {
-            return res.status(400).json({ error: "An account with this email already exists." });
-        }
-
+        if (users.find(u => u.email === normalizedEmail)) return res.status(400).json({ error: "Exists." });
         const hashedPassword = await bcrypt.hash(password, 10);
         users.push({ email: normalizedEmail, password: hashedPassword });
         saveUsers(users);
-
-        res.json({ success: true, message: "Account created successfully!" });
+        res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ error: "Server registration error." });
+        res.status(500).json({ error: "Fail." });
     }
 });
 
@@ -144,22 +104,14 @@ app.post('/api/auth/login', async (req, res) => {
         const { email, password } = req.body;
         const users = loadUsers();
         const normalizedEmail = email.toLowerCase().trim();
-
         const user = users.find(u => u.email === normalizedEmail);
-        if (!user) {
-            return res.status(400).json({ error: "Invalid email or password combination." });
-        }
-
+        if (!user) return res.status(400).json({ error: "Invalid credentials." });
         const match = await bcrypt.compare(password, user.password);
-        if (!match) {
-            return res.status(400).json({ error: "Invalid email or password combination." });
-        }
-
-        // Store account string marker token within express state tracking block
+        if (!match) return res.status(400).json({ error: "Invalid credentials." });
         req.session.userEmail = user.email;
-        res.json({ success: true, message: "Welcome back!" });
+        res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ error: "Server authentication error." });
+        res.status(500).json({ error: "Fail." });
     }
 });
 
@@ -168,28 +120,19 @@ app.post('/api/auth/logout', (req, res) => {
     res.json({ success: true });
 });
 
-// Middleware intercept check guard verifying access state rules
 function requireLogin(req, res, next) {
-    if (!req.session.userEmail) {
-        return res.status(401).json({ error: "Unauthorized access. Please log in." });
-    }
+    if (!req.session.userEmail) return res.status(401).json({ error: "Unauthorized." });
     next();
 }
 
-// ==========================================
-// 🤖 AI WORKSHEET VISION ROUTE
-// ==========================================
-
+// FIXES (1), (2), AND (3): AI Constraints Setup
 app.post('/api/ai/scan-worksheet', requireLogin, async (req, res) => {
     try {
         const { base64Image } = req.body;
-        if (!base64Image) {
-            return res.status(400).json({ error: "No image payload found." });
-        }
+        if (!base64Image) return res.status(400).json({ error: "No image payload found." });
 
-        console.log("🤖 Sending worksheet snapshot to OpenAI Vision API...");
+        console.log("🤖 Scanning sheet with 8-question limit & visual extraction rules...");
 
-        // Fire request over to GPT-4o with explicit instructions to parse math sheets into pure JSON strings
         const response = await openai.chat.completions.create({
             model: "gpt-4o",
             response_format: { type: "json_object" },
@@ -199,65 +142,50 @@ app.post('/api/ai/scan-worksheet', requireLogin, async (req, res) => {
                     content: [
                         { 
                             type: "text", 
-                            text: `Analyze this math worksheet image. Extract all questions along with their answers. 
-                            For questions involving diagrams, graphs, or geometric shapes, use the "text" field to type out the question statement, and append a highly descriptive note explaining what the shape or layout looks like (e.g., "[Geometry Asset: Triangle ABC with right angle at B, AB=3, BC=4]"). 
-                            You must return a JSON object containing an array named "questions". 
-                            Each question in the array must look exactly like this object structural layout: 
-                            { "text": "Question statement here", "answer": "Answer here" }` 
+                            text: `Analyze this math worksheet. Extract up to exactly 8 questions along with their answers. Stop processing after the 8th question.
+                            For questions involving graphic diagrams, angles, geometry grids, or geometric visuals present in the image, you MUST attach the image data string or a complete visual layout description inside the "image" field string property so it renders seamlessly on the presentation screen.
+                            You must return a JSON object containing an array named "questions".
+                            Each question structure must match this layout exactly:
+                            { "text": "Question statement here", "answer": "Answer here", "image": "Use the diagram asset or leave blank" }` 
                         },
                         {
                             type: "image_url",
-                            image_url: {
-                                url: base64Image // Receives the direct image payload string natively
-                            }
+                            image_url: { url: base64Image }
                         }
                     ]
                 }
             ]
         });
 
-        // Parse and forward the data back up to the frontend UI wizard view
-        const aiOutputText = response.choices[0].message.content;
-        const parsedJson = JSON.parse(aiOutputText);
-
+        const parsedJson = JSON.parse(response.choices[0].message.content);
+        // Safety truncation reinforcement rule
+        if (parsedJson.questions && parsedJson.questions.length > 8) {
+            parsedJson.questions = parsedJson.questions.slice(0, 8);
+        }
         res.json(parsedJson);
     } catch (err) {
-        console.error("AI Scanner Failure:", err);
-        res.status(500).json({ error: "AI processing failed. Check terminal keys." });
+        res.status(500).json({ error: "AI parsing failed." });
     }
 });
 
-// ==========================================
-// 📁 PROTECTED GAME SET ENDPOINTS
-// ==========================================
-
 app.get('/api/sets', requireLogin, (req, res) => {
     const allSets = loadSavedSets();
-    const userSets = allSets.filter(set => set.owner === req.session.userEmail);
-    res.json(userSets);
+    res.json(allSets.filter(set => set.owner === req.session.userEmail));
 });
 
 app.post('/api/sets', requireLogin, (req, res) => {
     const userSetsIncoming = req.body; 
     const allSets = loadSavedSets();
-    
     const remainingSets = allSets.filter(set => set.owner !== req.session.userEmail);
-    
     const brandedSets = userSetsIncoming.map(set => {
         set.owner = req.session.userEmail;
         return set;
     });
-
-    const combinedOutput = [...remainingSets, ...brandedSets];
-    saveSetsToFile(combinedOutput);
-    res.json({ success: true, message: "Set saved completely!" });
+    saveSetsToFile([...remainingSets, ...brandedSets]);
+    res.json({ success: true });
 });
 
-const availableEmojis = [
-    "🔥","👑","🚀","👾","🍕","🐱","🦊","🫅","🎭","🎲","🎯","🧩","🎪","🎨","🛹","💎","⚡","🌈","🍀","🌍",
-    "🐼","🐨","🐯","🦁","🐸","🐵","🦄","🦅","🦉","🦖","🐙","🦈","🍦","🍿","🍩","🍪","🥑","🌮","🎮","🎸",
-    "🏆","⚽","🏀","🎬","✈️","🛸","⚓️","🏝️","🌋","🔮","🎈","🎉","🎁","💡","🔑","📦","🍎","🥕","🍿","🧠"
-];
+const availableEmojis = ["🔥","👑","🚀","👾","🍕","🐱","🦊","🫅","🎭","🎲","🎯","🧩","🎪","🎨","🛹","💎","⚡","🌈","🍀","🌍"];
 
 function getFirstFreeEmoji(roomObj) {
     const takenEmojis = Object.values(roomObj.students).map(s => s.avatarSymbol);
@@ -265,27 +193,14 @@ function getFirstFreeEmoji(roomObj) {
 }
 
 io.on('connection', (socket) => {
-    
     socket.on('registerHost', () => {
         const oldRoom = findRoomByHostSocketId(socket.id);
-        if (oldRoom) {
-            delete activeRooms[oldRoom.code];
-        }
+        if (oldRoom) delete activeRooms[oldRoom.code];
 
         const newCode = generateRandomCode();
         activeRooms[newCode] = {
-            code: newCode,
-            hostSocketId: socket.id,
-            students: {},    
-            currentQuestion: null,
-            startTime: null,
-            firstCorrectAnswered: false,
-            submissionsThisRound: 0,
-            isStarted: false,
-            loadedSet: null
+            code: newCode, hostSocketId: socket.id, students: {}, currentQuestion: null, startTime: null, firstCorrectAnswered: false, submissionsThisRound: 0, isStarted: false, loadedSet: null
         };
-
-        console.log(`🎰 NEW LIVE ROOM CREATED: ${newCode}`);
         socket.join(newCode);
         socket.emit('initRoomCode', newCode);
         socket.emit('updateLobby', []);
@@ -294,30 +209,20 @@ io.on('connection', (socket) => {
     socket.on('joinRoom', ({ name, code }) => {
         const targetCode = code.trim();
         const room = activeRooms[targetCode];
-
         if (!room) {
-            socket.emit('joinError', 'Invalid Room Code. Check the projector!');
+            socket.emit('joinError', 'Invalid Room Code.');
             return;
         }
         if (room.isStarted) {
-            socket.emit('joinError', 'Too late! The match has already started.');
+            socket.emit('joinError', 'Match already started.');
             return;
         }
 
         let assignedEmoji = getFirstFreeEmoji(room);
-        let assignedColor = "#0984e3";
-        
-        room.students[socket.id] = { 
-            id: socket.id,
-            name: name, 
-            score: 0,
-            avatarSymbol: assignedEmoji,
-            avatarColor: assignedColor
-        };
+        room.students[socket.id] = { id: socket.id, name: name.substring(0, 15), score: 0, avatarSymbol: assignedEmoji, avatarColor: "#0984e3" };
 
         socket.join(targetCode);
-        socket.emit('joinSuccess', { id: socket.id, defaultSymbol: assignedEmoji, defaultColor: assignedColor });
-        
+        socket.emit('joinSuccess', { id: socket.id, defaultSymbol: assignedEmoji, defaultColor: "#0984e3" });
         io.to(room.hostSocketId).emit('updateLobby', Object.values(room.students));
         io.to(targetCode).emit('syncTakenAvatars', Object.values(room.students));
     });
@@ -325,29 +230,18 @@ io.on('connection', (socket) => {
     socket.on('updateAvatar', ({ symbol, color }) => {
         const room = findRoomByStudentSocketId(socket.id);
         if (!room || room.isStarted || !room.students[socket.id]) return;
-
         const isEmojiTaken = Object.values(room.students).some(s => s.id !== socket.id && s.avatarSymbol === symbol);
-        
         if (!isEmojiTaken) {
             room.students[socket.id].avatarSymbol = symbol;
             room.students[socket.id].avatarColor = color;
-            
             io.to(room.hostSocketId).emit('updateLobby', Object.values(room.students));
             io.to(room.code).emit('syncTakenAvatars', Object.values(room.students));
-        } else {
-            socket.emit('avatarSelectionFailed', {
-                message: 'Someone just grabbed that emoji! Pick a different one.',
-                fallbackSymbol: room.students[socket.id].avatarSymbol
-            });
-            room.students[socket.id].avatarColor = color;
-            io.to(room.hostSocketId).emit('updateLobby', Object.values(room.students));
         }
     });
 
     socket.on('selectActiveSet', (selectedSet) => {
         const room = findRoomByHostSocketId(socket.id);
         if (!room) return;
-
         room.loadedSet = selectedSet;
         io.to(room.hostSocketId).emit('activeSetReady', room.loadedSet);
     });
@@ -355,7 +249,6 @@ io.on('connection', (socket) => {
     socket.on('signalGameStart', () => {
         const room = findRoomByHostSocketId(socket.id);
         if (!room) return;
-
         room.isStarted = true;
         io.to(room.code).emit('lockAndLoadMatch');
     });
@@ -363,7 +256,6 @@ io.on('connection', (socket) => {
     socket.on('startQuestion', (questionData) => {
         const room = findRoomByHostSocketId(socket.id);
         if (!room) return;
-
         room.currentQuestion = questionData;
         room.startTime = Date.now();
         room.firstCorrectAnswered = false;
@@ -374,7 +266,6 @@ io.on('connection', (socket) => {
     socket.on('submitAnswer', (studentAnswer) => {
         const room = findRoomByStudentSocketId(socket.id);
         if (!room) return;
-
         const student = room.students[socket.id];
         if (!student || !room.startTime || !room.currentQuestion) return;
 
@@ -382,14 +273,13 @@ io.on('connection', (socket) => {
         const elapsedSeconds = (Date.now() - room.startTime) / 1000;
         
         if (studentAnswer.trim() === room.currentQuestion.answer) {
-            let pointsEarned = 3; 
-            
+            let pointsEarned = 3;
             if (elapsedSeconds <= 60) pointsEarned = 3;
             else if (elapsedSeconds <= 120) pointsEarned = 2;
-            else if (elapsedSeconds <= 180) pointsEarned = 1;
+            else pointsEarned = 1;
 
             if (!room.firstCorrectAnswered) {
-                pointsEarned += 1; 
+                pointsEarned += 1;
                 room.firstCorrectAnswered = true;
             }
             student.score += pointsEarned;
@@ -398,33 +288,32 @@ io.on('connection', (socket) => {
         const totalStudents = Object.keys(room.students).length;
         if (room.submissionsThisRound >= totalStudents) {
             io.to(room.hostSocketId).emit('forceRevealAnswer', room.currentQuestion.answer);
+            io.to(room.code).emit('timeOutLock'); // Force lock screens
         }
     });
 
+    // FIXES (6): Forces student screen lock out state when timer runs out
     socket.on('timerExpired', () => {
         const room = findRoomByHostSocketId(socket.id);
         if (room) {
             io.to(room.hostSocketId).emit('forceRevealAnswer', room.currentQuestion ? room.currentQuestion.answer : "");
+            io.to(room.code).emit('timeOutLock');
         }
     });
 
     socket.on('requestLeaderboard', () => {
         const room = findRoomByHostSocketId(socket.id);
         if (!room) return;
-
-        const leaderboard = Object.values(room.students).sort((a, b) => b.score - a.score);
-        socket.emit('finalLeaderboard', leaderboard);
+        socket.emit('finalLeaderboard', Object.values(room.students).sort((a, b) => b.score - a.score));
     });
 
     socket.on('disconnect', () => {
         const hostedRoom = findRoomByHostSocketId(socket.id);
         if (hostedRoom) {
-            console.log(`🗑️ HOST DISCONNECTED. REMOVING ROOM: ${hostedRoom.code}`);
-            io.to(hostedRoom.code).emit('joinError', 'Host disconnected from room match session.');
+            io.to(hostedRoom.code).emit('joinError', 'Host disconnected.');
             delete activeRooms[hostedRoom.code];
             return;
         }
-
         const studentRoom = findRoomByStudentSocketId(socket.id);
         if (studentRoom && studentRoom.students[socket.id]) {
             delete studentRoom.students[socket.id];
