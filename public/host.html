@@ -38,7 +38,6 @@
         .start-match-btn { background: #00b894; color: white; font-size: 2rem; font-weight: bold; padding: 15px 40px; border: none; border-radius: 20px; cursor: pointer; box-shadow: 0 6px 0 #009473; margin-top: 30px; }
         #activeQuestionText { font-size: 3rem; font-weight: bold; margin-bottom: 25px; color: #2d3436; line-height: 1.3; }
         
-        /* Layout configuration style mapping rule logic block for scaling Geometry Images */
         .question-canvas-img { max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 16px; margin: 0 auto 30px auto; box-shadow: 0 8px 20px rgba(0,0,0,0.06); display: none; }
 
         #answerRevealBox { font-size: 2.5rem; background: #00b894; color: white; padding: 20px; border-radius: 15px; display: none; font-weight: bold; margin-top: 30px; }
@@ -68,7 +67,7 @@
         <button class="emergency-stop-btn" onclick="triggerEarlyGameOver()">🏁 End Game & Show Results</button>
     </div>
 
-    <div id="gameBoardView">
+    <div id="gameBoardView" style="display: none;">
         <div id="gameBoardGrid"></div>
     </div>
 
@@ -225,7 +224,6 @@
             document.getElementById('activeQuestionText').innerText = questionData.text;
             document.getElementById('answerSpan').innerText = questionData.answer;
 
-            // Image handling logic routine setup mapping array verification rules
             const imgElement = document.getElementById('activeQuestionImg');
             if (questionData.image && questionData.image.trim() !== "") {
                 imgElement.src = questionData.image.trim();
