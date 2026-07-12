@@ -6,6 +6,7 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
 const { OpenAI } = require('openai');
+const FileStore = require('session-file-store')(require('express-session'));
 
 const app = express();
 const server = http.createServer(app);
