@@ -23,7 +23,7 @@
         
         .emoji-scroll-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; max-height: 220px; overflow-y: auto; padding-right: 5px; border: 1px solid #f1f2f6; border-radius: 12px; padding: 10px; background: #fafafa; }
         
-        .symbol-opt { font-size: 1.7rem; background: #ffffff; border: 2px solid #e1e8ed; border-radius: 10px; cursor: pointer; padding: 4px 0; transition: all 0.2s; display: flex; align-items: center; justify-content: center; height: 48px; box-sizing: border-box; }
+        .symbol-opt { font-size: 1.7rem; background: #ffffff; border: 2px solid #e1e8ed; border-radius: 10px; cursor: pointer; padding: 4px 0; transition: all 0.2s; display: flex; align-items: center; justify-content: center; aspect-ratio: 1 / 1; box-sizing: border-box; }
         .symbol-opt:hover { background: #dfe4ea; }
         .symbol-opt.selected { background: #2d3436; border-color: #2d3436; }
         
@@ -45,7 +45,7 @@
         <h2 style="font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">Join the Match! 🎮</h2>
         <div class="box-container">
             <input type="text" id="nameInput" placeholder="Your Name" required><br>
-            <input type="text" id="codeInput" placeholder="4-Digit Code" required><br>
+            <input type="text" id="codeInput" placeholder="8-Digit Code" required><br>
             <button id="joinBtn">CONNECT</button>
             <div id="errorBadge"></div>
         </div>
@@ -85,7 +85,7 @@
         let myId = null;
 
         const availableEmojis = [
-            "🔥","👑","🚀","👾","🍕","🐱","🦊","🫅","🎭","🎲","🎯","🧩","🎪","🎨","BOARD","💎","⚡","🌈","🍀","🌍",
+            "🔥","👑","🚀","👾","🍕","🐱","🦊","🫅","🎭","🎲","🎯","🧩","🎪","🎨","💎","⚡","🌈","🍀","🌍",
             "🐼","🐨","🐯","🦁","🐸","🐵","🦄","🦅","🦉","🦖","🐙","🦈","🍦","🍿","🍩","🍪","🥑","🌮","🎮","🎸",
             "🏆","⚽","🏀","🎬","✈️","🛸","⚓️","🏝️","🌋","🔮","🎈","🎉","🎁","💡","🔑","📦","🍎","🥕","🍿","🧠"
         ];
