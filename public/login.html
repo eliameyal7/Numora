@@ -7,8 +7,8 @@
         body { font-family: 'Montserrat', Arial, sans-serif; background-color: #f5f7fa; color: #2d3436; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
         .auth-container { background: white; border-radius: 24px; padding: 40px; max-width: 400px; width: 100%; box-shadow: 0 15px 35px rgba(0,0,0,0.08); text-align: center; box-sizing: border-box; }
         h2 { font-size: 2rem; color: #6c5ce7; margin-top: 0; margin-bottom: 30px; }
-        .form-group { text-align: left; margin-bottom: 20px; position: relative; }
-        label { display: block; font-weight: bold; margin-bottom: 8px; color: #2d3436; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+        .form-group { text-align: text; margin-bottom: 20px; position: relative; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #2d3436; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; text-align: left; }
         input { width: 100%; padding: 14px; border: 2px solid #dfe6e9; border-radius: 12px; font-size: 1rem; box-sizing: border-box; transition: all 0.2s ease; font-family: inherit; }
         input:focus { border-color: #6c5ce7; outline: none; background: #fbfbfe; }
         .auth-btn { width: 100%; background: #6c5ce7; color: white; border: none; padding: 14px; font-size: 1.1rem; font-weight: bold; border-radius: 12px; cursor: pointer; box-shadow: 0 5px 0 #4a3baf; transition: all 0.2s ease; margin-top: 10px; }
@@ -40,7 +40,7 @@
                 <input type="checkbox" id="togglePassword">
                 <label for="togglePassword" style="text-transform: none; font-weight: normal; margin: 0; letter-spacing: 0; cursor: pointer;">Show Password</label>
             </div>
-            <a class="forgot-link" id="forgotPasswordLink" onclick="alert('Password reset helper initiated.')">Forgot Password?</a>
+            <a class="forgot-link" id="forgotPasswordLink">Forgot Password?</a>
         </div>
 
         <button class="auth-btn" id="submitBtn" onclick="handleAuthSubmit()">LOG IN 🔐</button>
@@ -56,6 +56,45 @@
         document.getElementById('togglePassword').addEventListener('change', function() {
             const passwordField = document.getElementById('password');
             passwordField.type = this.checked ? 'text' : 'password';
+        });
+
+        // Event listener targeting our forgot password workflow
+        document.getElementById('forgotPasswordLink').addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            const emailInput = document.getElementById('email').value.trim();
+            const errorBox = document.getElementById('errorBox');
+            const successBox = document.getElementById('successBox');
+
+            errorBox.style.display = "none";
+            successBox.style.display = "none";
+
+            if (!emailInput) {
+                errorBox.innerText = "Please write your Email Address in the input field first so we know who to reset!";
+                errorBox.style.display = "block";
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: emailInput })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    errorBox.innerText = data.error || "Reset failed.";
+                    errorBox.style.display = "block";
+                } else {
+                    successBox.innerText = data.message;
+                    successBox.style.display = "block";
+                }
+            } catch (err) {
+                errorBox.innerText = "Cannot contact the server right now.";
+                errorBox.style.display = "block";
+            }
         });
 
         function toggleAuthMode() {
