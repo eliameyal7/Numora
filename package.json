@@ -2,8 +2,9 @@
   "name": "project_palmer",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -11,8 +12,10 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "express": "^4.19.2",
     "express-session": "^1.18.0",
+    "openai": "^4.52.7",
     "session-file-store": "^1.5.0",
     "socket.io": "^4.7.5"
   }
