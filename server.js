@@ -319,6 +319,8 @@ io.on('connection', (socket) => {
             io.to(room.code).emit('timeOutLock'); 
             if (room.fastestCorrectPlayer) {
                 io.to(room.code).emit('updateCategorySelector', room.fastestCorrectPlayer);
+                // FIXED: Also tell the host who the new selector is!
+                io.to(room.hostSocketId).emit('updateCategorySelector', room.fastestCorrectPlayer);
             }
         }
     });
@@ -330,6 +332,8 @@ io.on('connection', (socket) => {
             io.to(room.code).emit('timeOutLock');
             if (room.fastestCorrectPlayer) {
                 io.to(room.code).emit('updateCategorySelector', room.fastestCorrectPlayer);
+                // FIXED: Also tell the host who the new selector is!
+                io.to(room.hostSocketId).emit('updateCategorySelector', room.fastestCorrectPlayer);
             }
         }
     });
