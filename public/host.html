@@ -258,6 +258,16 @@
             }
         });
 
+        // FIXED: Catch event to change picker on Host Board layout when calculated dynamically
+        socket.on('updateCategorySelector', (data) => {
+            if (data && data.name) {
+                const hostPickerSpan = document.getElementById('activePickerName');
+                if (hostPickerSpan) {
+                    hostPickerSpan.innerText = data.name;
+                }
+            }
+        });
+
         function returnFromQuestion() {
             socket.emit('hostReturningToMenu');
             document.getElementById('questionFocusView').style.display = "none";
