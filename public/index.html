@@ -199,6 +199,16 @@
             document.getElementById('answerFormArea').style.display = "none";
         });
 
+        // NEW: Handles layout lockouts when the room host stops the round or time hits zero
+        socket.on('timeOutLock', () => {
+            clearInterval(studentClockTicker);
+            document.getElementById('studentTimerCountdown').style.display = "none";
+            document.getElementById('answerFormArea').style.display = "none";
+            
+            document.getElementById('roundStatusHeader').innerText = "Time's up! Look at the board. 🛑";
+            document.getElementById('roundStatusHeader').style.display = "block";
+        });
+
         socket.on('matchEndPlacement', (data) => {
             document.getElementById('studentWorkspaceBlock').style.display = "none";
             
