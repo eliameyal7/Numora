@@ -151,16 +151,20 @@
             switchToPassiveWaitingState();
         });
 
-        socket.on('revealQuestionInput', () => {
+        // FIXED: Now reads the data object passed from the server containing the accurate time limit
+        socket.on('revealQuestionInput', (data) => {
             document.getElementById('roundStatusHeader').style.display = "none";
             document.getElementById('textAnswerSubmissionField').value = "";
             document.getElementById('answerFormArea').style.display = "block";
-            runLocalStudentClock();
+            
+            // Sync with server duration if available, otherwise default to 180
+            const accurateServerDuration = (data && data.duration) ? data.duration : 180;
+            runLocalStudentClock(accurateServerDuration);
         });
 
-        function runLocalStudentClock() {
+        function runLocalStudentClock(startSeconds) {
             clearInterval(studentClockTicker);
-            studentSecondsRemaining = 180;
+            studentSecondsRemaining = startSeconds;
             updateStudentClockDisplay();
             document.getElementById('studentTimerCountdown').style.display = "block";
 
@@ -199,7 +203,7 @@
             document.getElementById('answerFormArea').style.display = "none";
         });
 
-        // NEW: Handles layout lockouts when the room host stops the round or time hits zero
+        // Handles layout lockouts when the room host stops the round or time hits zero
         socket.on('timeOutLock', () => {
             clearInterval(studentClockTicker);
             document.getElementById('studentTimerCountdown').style.display = "none";
