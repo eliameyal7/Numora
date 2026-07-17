@@ -115,7 +115,6 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// PASSWORD RECOVERY ENDPOINT FOR HOST LOGIN
 app.post('/api/auth/forgot-password', async (req, res) => {
     try {
         const { email } = req.body;
@@ -129,11 +128,9 @@ app.post('/api/auth/forgot-password', async (req, res) => {
             return res.status(404).json({ error: "No account found with that email address." });
         }
 
-        // Set a recognizable temporary fallback password
         const tempPassword = "Password123!";
         const hashedPassword = await bcrypt.hash(tempPassword, 10);
         
-        // Update user storage
         users[userIndex].password = hashedPassword;
         saveUsers(users);
 
@@ -228,7 +225,7 @@ io.on('connection', (socket) => {
 
         const newCode = generateRandomCode();
         activeRooms[newCode] = {
-            code: newCode, hostSocketId: socket.id, students: {}, currentQuestion: null, startTime: null, firstCorrectAnswered: false, submissionsThisRound: 0, isStarted: false, loadedSet: null
+            code: newCode, hostSocketId: socket.id, students: {}, currentQuestion: null, startTime: null, firstCorrectAnswered: false, fastestCorrectPlayer: null, submissionsThisRound: 0, isStarted: false, loadedSet: null
         };
         socket.join(newCode);
         socket.emit('initRoomCode', newCode);
@@ -288,8 +285,9 @@ io.on('connection', (socket) => {
         room.currentQuestion = questionData;
         room.startTime = Date.now();
         room.firstCorrectAnswered = false;
+        room.fastestCorrectPlayer = null;
         room.submissionsThisRound = 0;
-        io.to(room.code).emit('revealQuestionInput', { text: questionData.text });
+        io.to(room.code).emit('revealQuestionInput', { text: questionData.text, duration: 180 });
     });
 
     socket.on('submitAnswer', (studentAnswer) => {
@@ -310,6 +308,7 @@ io.on('connection', (socket) => {
             if (!room.firstCorrectAnswered) {
                 pointsEarned += 1;
                 room.firstCorrectAnswered = true;
+                room.fastestCorrectPlayer = { id: student.id, name: student.name };
             }
             student.score += pointsEarned;
         }
@@ -318,6 +317,9 @@ io.on('connection', (socket) => {
         if (room.submissionsThisRound >= totalStudents) {
             io.to(room.hostSocketId).emit('forceRevealAnswer', room.currentQuestion.answer);
             io.to(room.code).emit('timeOutLock'); 
+            if (room.fastestCorrectPlayer) {
+                io.to(room.code).emit('updateCategorySelector', room.fastestCorrectPlayer);
+            }
         }
     });
 
@@ -326,6 +328,9 @@ io.on('connection', (socket) => {
         if (room) {
             io.to(room.hostSocketId).emit('forceRevealAnswer', room.currentQuestion ? room.currentQuestion.answer : "");
             io.to(room.code).emit('timeOutLock');
+            if (room.fastestCorrectPlayer) {
+                io.to(room.code).emit('updateCategorySelector', room.fastestCorrectPlayer);
+            }
         }
     });
 
