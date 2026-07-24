@@ -111,7 +111,6 @@
         let loadedGameSet = null;
         let activeCategoryIndex = null;
         let countdownTickerInterval = null;
-        let clockSecondsRemaining = 180;
         let currentRoster = [];
 
         const vibrantColors = ["#ff7675", "#fdcb6e", "#00b894", "#0984e3", "#e84393", "#6c5ce7", "#e17055", "#00cec9"];
@@ -233,21 +232,31 @@
                 imgElement.style.display = "none";
             }
 
-            socket.emit('startQuestion', questionData);
-            beginAutomatedRoundTimer();
+            // Target time calculation (3 minutes / 180,000 ms from now)
+            const endTime = Date.now() + (180 * 1000);
+
+            // Broadcast endTime inside the question object
+            socket.emit('startQuestion', {
+                ...questionData,
+                endTime: endTime
+            });
+
+            beginAutomatedRoundTimer(endTime);
         }
 
-        function beginAutomatedRoundTimer() {
+        function beginAutomatedRoundTimer(endTime) {
             clearInterval(countdownTickerInterval);
-            clockSecondsRemaining = 180;
 
-            countdownTickerInterval = setInterval(() => {
-                clockSecondsRemaining--;
-                if (clockSecondsRemaining <= 0) {
+            function updateTimer() {
+                const secondsLeft = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+                if (secondsLeft <= 0) {
                     clearInterval(countdownTickerInterval);
                     socket.emit('timerExpired');
                 }
-            }, 1000);
+            }
+
+            updateTimer();
+            countdownTickerInterval = setInterval(updateTimer, 500);
         }
 
         socket.on('forceRevealAnswer', (answerText, fastestStudentName) => {
