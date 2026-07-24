@@ -128,7 +128,9 @@ app.post('/api/auth/forgot-password', async (req, res) => {
             return res.status(404).json({ error: "No account found with that email address." });
         }
 
-        const tempPassword = "Password123!";
+        // Generate a random 6-digit temporary password
+        const randomDigits = Math.floor(100000 + Math.random() * 900000);
+        const tempPassword = `Reset-${randomDigits}!`;
         const hashedPassword = await bcrypt.hash(tempPassword, 10);
         
         users[userIndex].password = hashedPassword;
@@ -143,15 +145,39 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     }
 });
 
-app.post('/api/auth/logout', (req, res) => {
-    req.session.destroy();
-    res.json({ success: true });
-});
-
 function requireLogin(req, res, next) {
     if (!req.session.userEmail) return res.status(401).json({ error: "Unauthorized." });
     next();
 }
+
+app.post('/api/auth/change-password', requireLogin, async (req, res) => {
+    try {
+        const { newPassword } = req.body;
+        if (!newPassword || newPassword.length < 6) {
+            return res.status(400).json({ error: "Password must be at least 6 characters long." });
+        }
+
+        const users = loadUsers();
+        const userIndex = users.findIndex(u => u.email === req.session.userEmail);
+
+        if (userIndex === -1) {
+            return res.status(404).json({ error: "User not found." });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        users[userIndex].password = hashedPassword;
+        saveUsers(users);
+
+        res.json({ success: true, message: "Password updated successfully!" });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to update password." });
+    }
+});
+
+app.post('/api/auth/logout', (req, res) => {
+    req.session.destroy();
+    res.json({ success: true });
+});
 
 app.post('/api/ai/scan-worksheet', requireLogin, async (req, res) => {
     try {
