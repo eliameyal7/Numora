@@ -29,7 +29,7 @@
         .danger-btn { background: #d63031; color: white; font-size: 0.9rem; padding: 8px 15px; width: auto; margin: 0; }
         .danger-btn:hover { background: #ff7675; }
         
-        input[type="text"], input[type="number"] { padding: 12px; font-size: 1.1rem; border: 2px solid #dfe6e9; border-radius: 10px; box-sizing: border-box; color: #2d3436; font-weight: 500; transition: all 0.2s; }
+        input[type="text"], input[type="number"], input[type="password"] { padding: 12px; font-size: 1.1rem; border: 2px solid #dfe6e9; border-radius: 10px; box-sizing: border-box; color: #2d3436; font-weight: 500; transition: all 0.2s; }
         input:focus { border-color: #6c5ce7; outline: none; box-shadow: 0 0 8px rgba(108, 92, 231, 0.15); }
         
         .category-block { background: #ffffff; border: 2px solid #edf2f7; padding: 25px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s; }
@@ -154,8 +154,25 @@
                 <input type="checkbox" class="settings-toggle" id="settingSessionCache" checked>
             </div>
 
-            <button class="action-btn primary-btn" style="margin-top: 15px; margin-bottom: 10px;" onclick="alert('Account recovery data synchronized!')">Change Security Password</button>
+            <button class="action-btn primary-btn" style="margin-top: 15px; margin-bottom: 10px;" onclick="openPasswordModal()">Change Security Password</button>
             <button class="action-btn danger-btn" style="width: 100%; padding: 12px; border-radius: 12px; font-weight: bold;" onclick="window.location.href='/login.html'">Log Out Profile 🚪</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="changePasswordModal" onclick="closePasswordModal()">
+        <div class="settings-modal" onclick="event.stopPropagation()" style="text-align: center;">
+            <h2 style="margin-top: 0; color: #2d3436; font-size: 1.5rem;">🔑 Change Password</h2>
+            <p style="color: #636e72; font-size: 0.85rem; margin-bottom: 20px;">Enter your new password below (at least 6 characters).</p>
+            
+            <input type="password" id="newPasswordInput" placeholder="New Password" style="width: 100%; margin-bottom: 10px;">
+            <input type="password" id="confirmPasswordInput" placeholder="Confirm New Password" style="width: 100%; margin-bottom: 15px;">
+            
+            <div id="changePasswordStatus" style="font-weight: bold; margin-bottom: 15px; font-size: 0.9rem; display: none;"></div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="action-btn primary-btn" onclick="submitPasswordChange()" style="margin: 0;">Update</button>
+                <button class="action-btn danger-btn" onclick="closePasswordModal()" style="width: 100%; border-radius: 12px;">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -166,6 +183,66 @@
 
         function toggleSettingsModal(openState) {
             document.getElementById('settingsOverlay').style.display = openState ? 'flex' : 'none';
+        }
+
+        function openPasswordModal() {
+            toggleSettingsModal(false);
+            document.getElementById('newPasswordInput').value = '';
+            document.getElementById('confirmPasswordInput').value = '';
+            const statusDiv = document.getElementById('changePasswordStatus');
+            statusDiv.style.display = 'none';
+            document.getElementById('changePasswordModal').style.display = 'flex';
+        }
+
+        function closePasswordModal() {
+            document.getElementById('changePasswordModal').style.display = 'none';
+        }
+
+        async function submitPasswordChange() {
+            const newPassword = document.getElementById('newPasswordInput').value.trim();
+            const confirmPassword = document.getElementById('confirmPasswordInput').value.trim();
+            const statusDiv = document.getElementById('changePasswordStatus');
+
+            if (!newPassword || newPassword.length < 6) {
+                statusDiv.style.display = 'block';
+                statusDiv.style.color = '#d63031';
+                statusDiv.innerText = 'Password must be at least 6 characters.';
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                statusDiv.style.display = 'block';
+                statusDiv.style.color = '#d63031';
+                statusDiv.innerText = 'Passwords do not match.';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newPassword })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    statusDiv.style.display = 'block';
+                    statusDiv.style.color = '#00b894';
+                    statusDiv.innerText = 'Password updated successfully!';
+                    setTimeout(() => {
+                        closePasswordModal();
+                    }, 1500);
+                } else {
+                    statusDiv.style.display = 'block';
+                    statusDiv.style.color = '#d63031';
+                    statusDiv.innerText = result.error || 'Failed to update password.';
+                }
+            } catch (err) {
+                statusDiv.style.display = 'block';
+                statusDiv.style.color = '#d63031';
+                statusDiv.innerText = 'Server error. Please try again.';
+            }
         }
 
         async function fetchSavedSets() {
@@ -377,7 +454,6 @@
                         return;
                     }
 
-                    // CHANGED: Restrict raw array parsing explicitly down to a maximum of 8 questions
                     pendingAiQuestionsMemory = data.questions.slice(0, 8);
                     
                     const tbody = document.getElementById('aiTablePreviewBody');
@@ -401,14 +477,12 @@
             reader.readAsDataURL(file);
         }
 
-        // CHANGED: Implemented Rules (1) & (2) here to dynamically generate a clean separate category row
         function importAiQuestionsIntoCurrentWorkspace() {
             if (!pendingAiQuestionsMemory || pendingAiQuestionsMemory.length === 0) return;
 
             const currentSet = allSetsMemory[activeSetIndex];
             const newCategoryIndex = currentSet.categories.length + 1;
             
-            // Generate distinct custom category properties housing up to 8 rows max
             const targetCategory = {
                 categoryName: `Worksheet Import #${newCategoryIndex}`,
                 questions: []
@@ -418,7 +492,7 @@
                 targetCategory.questions.push({
                     text: aiQ.text,
                     answer: aiQ.answer,
-                    image: aiQ.image || "" // Rule (3): Preserves picture layout references cleanly
+                    image: aiQ.image || ""
                 });
             });
 
