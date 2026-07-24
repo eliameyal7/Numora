@@ -26,7 +26,7 @@
 ##  How It Works
 
 1. The host launches a room from the Host Projector Interface.
-2. Players navigate to the app link on their mobile devices or laptops and enter the 8-digit join code.
+2. Players navigate to the app link on their devices or laptops and enter the 8-digit join code.
 3. Once avatars are selected, the host launches the match.
 4. Players receive synced question prompts, enter their answers, and compete for top ranks on the live leaderboard.
 
