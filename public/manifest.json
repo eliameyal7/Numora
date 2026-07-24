@@ -1,0 +1,21 @@
+{
+  "short_name": "Numora",
+  "name": "Numora Competition App",
+  "icons": [
+    {
+      "src": "https://em-content.zobj.net/source/apple/354/fire_1f525.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://em-content.zobj.net/source/apple/354/fire_1f525.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0984e3",
+  "theme_color": "#0984e3",
+  "display": "standalone",
+  "orientation": "portrait"
+}
