@@ -34,5 +34,5 @@
 
 ##  Author
 
-**Built and developed by:** Elia Meyal.  
+**Built and developed by:** Elia Meyal 
 *Fusing web sockets and real-time frontend engineering to create engaging educational web applications.*
