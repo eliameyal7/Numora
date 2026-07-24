@@ -55,7 +55,7 @@
             <h1 class="huge-code-badge" id="roomCodeDisplay">--------</h1>
         </div>
         <div class="join-url-hint-box">
-            🌐 Join at: <span style="color:#6c5ce7;">http://localhost:3000</span>
+            🌐 Join at: <span style="color:#6c5ce7;">https://numora-kp9x.onrender.com</span>
         </div>
     </div>
 
@@ -258,7 +258,6 @@
             }
         });
 
-        // FIXED: Catch event to change picker on Host Board layout when calculated dynamically
         socket.on('updateCategorySelector', (data) => {
             if (data && data.name) {
                 const hostPickerSpan = document.getElementById('activePickerName');
