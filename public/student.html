@@ -239,7 +239,7 @@
             document.getElementById('waitingArea').innerHTML = "<p>Match starting... Get ready! 🏁</p>";
         });
 
-        socket.on('revealQuestionInput', () => {
+        socket.on('revealQuestionInput', (data) => {
             document.getElementById('waitingArea').style.display = 'none';
             document.getElementById('gameArea').style.display = 'block';
             
@@ -251,29 +251,34 @@
             inputField.value = '';
             inputField.focus();
             
-            startTimer(180); 
+            // Use target endTime passed from server/host or calculate fallback
+            const endTime = (data && data.endTime) ? data.endTime : Date.now() + (180 * 1000);
+            startTimerByEndTime(endTime); 
         });
 
-        function startTimer(duration) {
+        function startTimerByEndTime(endTime) {
             if (countdownInterval) clearInterval(countdownInterval);
-            let timer = duration;
             const display = document.getElementById('timer');
-            display.textContent = "3:00";
 
-            countdownInterval = setInterval(() => {
-                let minutes = Math.floor(timer / 60);
-                let seconds = timer % 60;
+            function updateDisplay() {
+                const totalSecondsLeft = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+                
+                let minutes = Math.floor(totalSecondsLeft / 60);
+                let seconds = totalSecondsLeft % 60;
                 seconds = seconds < 10 ? "0" + seconds : seconds;
+                
                 display.textContent = minutes + ":" + seconds;
-                timer--;
 
-                if (timer < 0) {
+                if (totalSecondsLeft <= 0) {
                     clearInterval(countdownInterval);
                     display.textContent = "0:00";
                     submitAnswerToServer(); 
                     socket.emit('timerExpired');
                 }
-            }, 1000);
+            }
+
+            updateDisplay();
+            countdownInterval = setInterval(updateDisplay, 500);
         }
 
         function submitAnswerToServer() {
