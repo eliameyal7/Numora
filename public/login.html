@@ -43,7 +43,7 @@
             <a class="forgot-link" id="forgotPasswordLink">Forgot Password?</a>
         </div>
 
-        <button class="auth-btn" id="submitBtn" onclick="handleAuthSubmit()">LOG IN 🔐</button>
+        <button class="auth-btn" id="submitBtn" onclick="handleAuthSubmit()">LOG IN</button>
         <div id="errorBox" class="error-msg"></div>
         <div id="successBox" class="success-msg"></div>
 
@@ -109,12 +109,12 @@
 
             if (isLoginMode) {
                 title.innerText = "Log in Page";
-                btn.innerText = "LOG IN 🔐";
+                btn.innerText = "LOG IN";
                 toggle.innerText = "Don't have an account? Sign up here";
                 forgotLink.style.display = "block";
             } else {
                 title.innerText = "Create Account";
-                btn.innerText = "REGISTER ACCOUNT 🚀";
+                btn.innerText = "REGISTER ACCOUNT";
                 toggle.innerText = "Already registered? Log in instead";
                 forgotLink.style.display = "none";
             }
