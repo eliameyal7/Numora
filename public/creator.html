@@ -75,7 +75,7 @@
             <p class="subtitle">Create and organize custom question sets for your live match boards.</p>
         </div>
         <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
-            <button class="student-portal-btn" onclick="window.location.href='/'"> Student Portal</button>
+            <button class="student-portal-btn" onclick="window.location.href='/'">Student Portal</button>
             <button class="settings-trigger-btn" onclick="toggleSettingsModal(true)">⚙️</button>
         </div>
     </div>
@@ -96,21 +96,21 @@
                     <input type="text" id="editSetNameInput" style="font-size: 1.6rem; width: 100%; font-weight: bold; background: transparent; border: none; border-bottom: 2px solid #dfe6e9; border-radius: 0; padding: 5px 0;" placeholder="e.g., 5th Grade Algebra Pack">
                 </div>
                 <div style="display: flex; gap: 15px;">
-                    <button class="action-btn primary-btn" style="width: 140px; margin: 0;" onclick="saveCurrentSetToServer()"> Save Changes</button>
-                    <button class="action-btn secondary-btn" style="width: 140px; margin: 0;" id="launchGameBtn" onclick="launchSetIntoLiveLobby()"> Play Set</button>
+                    <button class="action-btn primary-btn" style="width: 140px; margin: 0;" onclick="saveCurrentSetToServer()">Save Changes</button>
+                    <button class="action-btn secondary-btn" style="width: 140px; margin: 0;" id="launchGameBtn" onclick="launchSetIntoLiveLobby()">Play Set</button>
                 </div>
             </div>
 
             <div class="ai-scanner-section">
-                <h3 style="margin-top:0; color:#4a0e4e; display:flex; align-items:center; gap:8px;"> AI Worksheet Snapshot Scanner</h3>
+                <h3 style="margin-top:0; color:#4a0e4e; display:flex; align-items:center; gap:8px;">AI Worksheet Snapshot Scanner</h3>
                 
                 <div class="ai-upload-box" onclick="document.getElementById('aiFileInput').click()">
-                    <span id="aiUploadLabel" style="font-weight:bold; color:#6c5ce7;"> Click or Drag Worksheet Photo Here</span>
+                    <span id="aiUploadLabel" style="font-weight:bold; color:#6c5ce7;">Click or Drag Worksheet Photo Here</span>
                     <input type="file" id="aiFileInput" accept="image/*" style="display:none;" onchange="processWorksheetWithVisionAPI(this)">
                 </div>
 
                 <div id="aiLoadingStatus" style="display:none; text-align:center; padding:20px; font-weight:bold; color:#6c5ce7;">
-                     AI is parsing document geometry math formulas... please hold on...
+                    ⏳ AI is parsing document geometry math formulas... please hold on...
                 </div>
 
                 <div id="aiPreviewArea" style="display:none; margin-top:20px;">
@@ -124,7 +124,7 @@
                         </thead>
                         <tbody id="aiTablePreviewBody"></tbody>
                     </table>
-                    <button class="action-btn primary-btn" style="margin-top:15px; width:auto; padding:12px 25px;" onclick="importAiQuestionsIntoCurrentWorkspace()"> Import Scanned Questions into Set</button>
+                    <button class="action-btn primary-btn" style="margin-top:15px; width:auto; padding:12px 25px;" onclick="importAiQuestionsIntoCurrentWorkspace()">📥 Import Scanned Questions into Set</button>
                 </div>
             </div>
 
@@ -141,26 +141,26 @@
             <p style="color: #b2bec3; font-size: 0.85rem; margin-top: -10px; margin-bottom: 25px;">Manage game layouts and options workspace parameters.</p>
             
             <div class="settings-row">
-                <label> Dark Workspace Layer</label>
+                <label>🌙 Dark Workspace Layer</label>
                 <input type="checkbox" class="settings-toggle" id="settingDarkMode" onchange="alert('Dark Mode layout cached!')">
             </div>
             <div class="settings-row">
-                <label>🔊 Global SFX Audio Toggles</label>
+                <label>Global SFX Audio Toggles</label>
                 <input type="checkbox" class="settings-toggle" id="settingSoundFX" checked onchange="alert('Audio feedback profiles updated!')">
             </div>
             <div class="settings-row">
-                <label> Cache Session Protection</label>
+                <label>🔒 Cache Session Protection</label>
                 <input type="checkbox" class="settings-toggle" id="settingSessionCache" checked>
             </div>
 
             <button class="action-btn primary-btn" style="margin-top: 15px; margin-bottom: 10px;" onclick="openPasswordModal()">Change Security Password</button>
-            <button class="action-btn danger-btn" style="width: 100%; padding: 12px; border-radius: 12px; font-weight: bold;" onclick="window.location.href='/login.html'">Log Out Profile </button>
+            <button class="action-btn danger-btn" style="width: 100%; padding: 12px; border-radius: 12px; font-weight: bold;" onclick="window.location.href='/login.html'">Log Out Profile 🚪</button>
         </div>
     </div>
 
     <div class="modal-overlay" id="changePasswordModal" onclick="closePasswordModal()">
         <div class="settings-modal" onclick="event.stopPropagation()" style="text-align: center;">
-            <h2 style="margin-top: 0; color: #2d3436; font-size: 1.5rem;"> Change Password</h2>
+            <h2 style="margin-top: 0; color: #2d3436; font-size: 1.5rem;">🔑 Change Password</h2>
             <p style="color: #636e72; font-size: 0.85rem; margin-bottom: 20px;">Enter your new password below (at least 6 characters).</p>
             
             <input type="password" id="newPasswordInput" placeholder="New Password" style="width: 100%; margin-bottom: 10px;">
@@ -336,7 +336,7 @@
             const currentSet = allSetsMemory[activeSetIndex];
             document.getElementById('editSetNameInput').value = currentSet.setName;
             document.getElementById('aiPreviewArea').style.display = "none";
-            document.getElementById('aiUploadLabel').innerText = " Click or Drag Worksheet Photo Here";
+            document.getElementById('aiUploadLabel').innerText = "Click or Drag Worksheet Photo Here";
             pendingAiQuestionsMemory = [];
             renderWorkspaceCategories();
         }
@@ -352,7 +352,7 @@
                 catBlock.innerHTML = `
                     <div class="category-header">
                         <input type="text" value="${cat.categoryName}" style="font-size: 1.3rem; width: 60%; font-weight: bold; background: transparent; border: none; border-bottom: 2px solid #dfe6e9; border-radius:0;" onchange="updateCategoryName(${catIdx}, this.value)" placeholder="Category Name">
-                        <button class="action-btn danger-btn" onclick="deleteCategory(${catIdx})"> Delete Category</button>
+                        <button class="action-btn danger-btn" onclick="deleteCategory(${catIdx})">Delete Category</button>
                     </div>
                     <div id="q-list-cat-${catIdx}"></div>
                     <div class="add-link" onclick="addQuestionToCategory(${catIdx})">➕ Add Question row</div>
@@ -414,7 +414,7 @@
                 });
                 const resData = await response.json();
                 if(resData.success) {
-                    alert("Set written down and saved permanently! ");
+                    alert("Set written down and saved permanently! 💾");
                     renderSidebarList();
                 }
             } catch(err) {
@@ -431,7 +431,7 @@
             const file = input.files[0];
             if (!file) return;
 
-            document.getElementById('aiUploadLabel').innerText = ` Loaded: ${file.name}`;
+            document.getElementById('aiUploadLabel').innerText = `Loaded: ${file.name}`;
             document.getElementById('aiLoadingStatus').style.display = "block";
             document.getElementById('aiPreviewArea').style.display = "none";
 
@@ -503,7 +503,7 @@
             pendingAiQuestionsMemory = [];
 
             renderWorkspaceCategories();
-            alert("Success! Created a separate category row containing up to 8 elements. Don't forget to click Save Changes!");
+            alert("Success! Created a separate category row containing up to 8 elements. Don't forget to click Save Changes! 💾");
         }
 
         fetchSavedSets();
