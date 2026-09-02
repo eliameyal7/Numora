@@ -253,39 +253,37 @@
 <body>
 
     <div id="loginForm">
-        <h2 style="font-size: 2.5rem; margin-bottom: 20px;">Enter the Arena 🎮</h2>
+        <h2 style="font-size: 2.5rem; margin-bottom: 20px;">Join Match</h2>
         <div class="box-container">
-            <input type="text" id="nameInput" placeholder="Your Name" required><br>
-            <input type="text" id="codeInput" placeholder="8-Digit Code" required><br>
+            <input type="text" id="nameInput" placeholder="Name" required><br>
+            <input type="text" id="codeInput" placeholder="Game Code" required><br>
             <button id="joinBtn">CONNECT</button>
-            <a class="forgot-link" id="forgotBtn">Forgot your code/password?</a>
+            <a class="forgot-link" id="forgotBtn">Forgot code?</a>
             <div id="errorBadge"></div>
         </div>
     </div>
 
     <div id="avatarForm">
-        <h2 style="font-size: 2.2rem; margin-bottom: 15px;">Choose Your Avatar</h2>
+        <h2 style="font-size: 2.2rem; margin-bottom: 15px;">Avatar Setup</h2>
         <div class="box-container">
             <div class="preview-avatar" id="avatarPreviewCircle">🔥</div>
             
-            <div class="selector-row-title">Pick an Emoji</div>
+            <div class="selector-row-title">Select Avatar</div>
             <div class="emoji-scroll-container" id="symbolGridContainer"></div>
 
-            <div class="selector-row-title">Pick a Background Color</div>
+            <div class="selector-row-title">Select Background Color</div>
             <div class="color-grid" id="colorGridContainer"></div>
-            
-            <p style="font-size:0.85rem; color: var(--text-muted); margin-top:16px; font-weight:500;">Emojis are first-come, first-served!</p>
         </div>
     </div>
 
     <div id="waitingArea">
-        <p>Awaiting host to start... 📡</p>
+        <p>Awaiting host...</p>
     </div>
 
     <div id="gameArea">
         <div id="timer">3:00</div>
         <div class="box-container">
-            <input type="text" id="answerInput" placeholder="Your Answer..."><br>
+            <input type="text" id="answerInput" placeholder="Answer"><br>
             <button id="submitBtn" onclick="submitAnswerToServer()">SUBMIT</button>
         </div>
     </div>
@@ -333,12 +331,11 @@
         document.getElementById('forgotBtn').addEventListener('click', function() {
             const name = document.getElementById('nameInput').value.trim();
             if (!name) {
-                alert("Please type your name first so the host knows who is asking!");
+                alert("Please enter your name first.");
                 return;
             }
-            // Emits an event to the server to handle the recovery
             socket.emit('requestPasswordRecovery', { name });
-            alert("Sent a help request to the host screen! Hang tight.");
+            alert("Recovery request sent to host.");
         });
 
         function buildAvatarCustomizerUI() {
@@ -369,7 +366,7 @@
         function processRoomJoin() {
             const name = document.getElementById('nameInput').value.trim();
             const code = document.getElementById('codeInput').value.trim();
-            if(!name || !code) return alert("Fill out your name and room code!");
+            if(!name || !code) return alert("Enter your name and room code.");
             document.getElementById('errorBadge').style.display = 'none';
             socket.emit('joinRoom', { name, code });
         }
@@ -443,7 +440,7 @@
         socket.on('lockAndLoadMatch', () => {
             document.getElementById('avatarForm').style.display = 'none';
             document.getElementById('waitingArea').style.display = 'block';
-            document.getElementById('waitingArea').innerHTML = "<p>Match starting... Get ready! 🏁</p>";
+            document.getElementById('waitingArea').innerHTML = "<p>Match starting...</p>";
         });
 
         socket.on('revealQuestionInput', (data) => {
@@ -458,7 +455,6 @@
             inputField.value = '';
             inputField.focus();
             
-            // Use target endTime passed from server/host or calculate fallback
             const endTime = (data && data.endTime) ? data.endTime : Date.now() + (180 * 1000);
             startTimerByEndTime(endTime); 
         });
@@ -498,14 +494,14 @@
             
             document.getElementById('gameArea').style.display = 'none';
             document.getElementById('waitingArea').style.display = 'block';
-            document.getElementById('waitingArea').innerHTML = "<p style='color: white;'>Answer locked in! Look at the board! 🔒</p>";
+            document.getElementById('waitingArea').innerHTML = "<p style='color: white;'>Answer locked in.</p>";
         }
 
         socket.on('stopStudentTimerNow', () => {
             if (countdownInterval) clearInterval(countdownInterval);
             document.getElementById('gameArea').style.display = 'none';
             document.getElementById('waitingArea').style.display = 'block';
-            document.getElementById('waitingArea').innerHTML = "<p style='color: white;'>Question closed by host! 📋</p>";
+            document.getElementById('waitingArea').innerHTML = "<p style='color: white;'>Question closed.</p>";
         });
     </script>
 </body>
