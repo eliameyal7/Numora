@@ -33,7 +33,7 @@
 <body>
 
     <div id="joinGateBlock" class="card">
-        <h1>Join the Match 🎮</h1>
+        <h1>Join the Match </h1>
         <div class="input-group">
             <label>Nickname</label>
             <input type="text" id="studentNameInput" placeholder="Enter your name...">
@@ -46,7 +46,7 @@
     </div>
 
     <div id="avatarCustomizationBlock" class="card" style="display: none;">
-        <h1>Pick Your Emoji 🙌</h1>
+        <h1>Pick Your Emoji </h1>
         <div style="height: 10px;"></div>
         <div class="emoji-grid-selection" id="avatarEmojiGridSystem"></div>
     </div>
@@ -142,7 +142,7 @@
         function switchToPassiveWaitingState() {
             clearInterval(studentClockTicker);
             document.getElementById('studentTimerCountdown').style.display = "none";
-            document.getElementById('roundStatusHeader').innerText = "Look at the Projector Board! 📋";
+            document.getElementById('roundStatusHeader').innerText = "Look at the Projector Board!";
             document.getElementById('roundStatusHeader').style.display = "block";
             document.getElementById('answerFormArea').style.display = "none";
         }
@@ -189,7 +189,7 @@
             document.getElementById('studentTimerCountdown').style.display = "none";
             document.getElementById('answerFormArea').style.display = "none";
             
-            document.getElementById('roundStatusHeader').innerText = "Answer submitted! 🎉";
+            document.getElementById('roundStatusHeader').innerText = "Answer submitted!";
             document.getElementById('roundStatusHeader').style.display = "block";
         }
 
@@ -205,16 +205,16 @@
             document.getElementById('studentTimerCountdown').style.display = "none";
             document.getElementById('answerFormArea').style.display = "none";
             
-            document.getElementById('roundStatusHeader').innerText = "Time's up! Look at the board. 🛑";
+            document.getElementById('roundStatusHeader').innerText = "Time's up! Look at the board.";
             document.getElementById('roundStatusHeader').style.display = "block";
         });
 
         socket.on('updateCategorySelector', (data) => {
             if (data && data.name) {
                 if (data.id === myPlayerId) {
-                    document.getElementById('roundStatusHeader').innerText = "🌟 You answered fastest! Pick the next category! 🌟";
+                    document.getElementById('roundStatusHeader').innerText = "You answered fastest! Pick the next category!";
                 } else {
-                    document.getElementById('roundStatusHeader').innerText = `🤔 ${data.name}, pick the next category!`;
+                    document.getElementById('roundStatusHeader').innerText = ` ${data.name}, pick the next category!`;
                 }
                 document.getElementById('roundStatusHeader').style.display = "block";
             }
