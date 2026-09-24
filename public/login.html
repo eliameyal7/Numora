@@ -30,7 +30,7 @@
 
         <div class="form-group">
             <label for="email">Email Address</label>
-            <input type="email" id="email" placeholder="coach@mathleague.com">
+            <input type="email" id="email" placeholder="abcdef@gmail.com">
         </div>
 
         <div class="form-group">
@@ -70,7 +70,7 @@
             successBox.style.display = "none";
 
             if (!emailInput) {
-                errorBox.innerText = "Please write your Email Address in the input field first so we know who to reset!";
+                errorBox.innerText = "Please write your Email Address in the input field first so we know what to reset!";
                 errorBox.style.display = "block";
                 return;
             }
@@ -92,7 +92,7 @@
                     successBox.style.display = "block";
                 }
             } catch (err) {
-                errorBox.innerText = "Cannot contact the server right now.";
+                errorBox.innerText = "Error. Please try again.";
                 errorBox.style.display = "block";
             }
         });
@@ -151,13 +151,13 @@
                     errorBox.style.display = "block";
                 } else {
                     if (isLoginMode) {
-                        successBox.innerText = "Success! Forwarding to workspace...";
+                        successBox.innerText = "Loading...";
                         successBox.style.display = "block";
                         setTimeout(() => {
                             window.location.href = "/creator.html";
                         }, 1000);
                     } else {
-                        successBox.innerText = "Account ready! Switching to login layer...";
+                        successBox.innerText = "Loading...";
                         successBox.style.display = "block";
                         document.getElementById('password').value = "";
                         setTimeout(() => {
