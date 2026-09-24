@@ -60,7 +60,7 @@
             <h1 class="huge-code-badge" id="roomCodeDisplay">--------</h1>
         </div>
         <div class="join-url-hint-box">
-            🌐 Join at: <span style="color:#6c5ce7;">https://numora-kp9x.onrender.com</span>
+             Join at: <span style="color:#6c5ce7;">https://numora-kp9x.onrender.com</span>
         </div>
     </div>
 
@@ -69,7 +69,7 @@
     </div>
 
     <div id="activeMatchControlBar" class="top-control-bar">
-        <button class="emergency-stop-btn" onclick="triggerEarlyGameOver()">🏁 End Game & Show Results</button>
+        <button class="emergency-stop-btn" onclick="triggerEarlyGameOver()"> End Game & Show Results</button>
     </div>
 
     <div id="gameBoardView" style="display: none;">
@@ -79,14 +79,14 @@
     <div id="categoryDetailView">
         <h2 id="currentCategoryTitleHeader">Category Title</h2>
         <div class="questions-button-grid" id="categoryQuestionsContainer"></div>
-        <button class="back-to-board-btn" onclick="closeCategoryWorkspace()">⬅️ Back to Categories</button>
+        <button class="back-to-board-btn" onclick="closeCategoryWorkspace()"> Back to Categories</button>
     </div>
 
     <div id="lobbyView" class="lobby-screen">
-        <h2 style="font-size: 2.5rem; margin-top: 0; color: #2d3436;">Waiting Room 🚪</h2>
+        <h2 style="font-size: 2.5rem; margin-top: 0; color: #2d3436;">Waiting Room </h2>
         <p style="font-size: 1.3rem; color: #b2bec3;">Enter the code above on your screen to join!</p>
         <div id="studentsLobbyContainer" style="margin: 30px 0; min-height: 100px;"></div>
-        <button class="start-match-btn" onclick="startLiveMatch()">LAUNCH MATCH 🚀</button>
+        <button class="start-match-btn" onclick="startLiveMatch()">LAUNCH MATCH </button>
     </div>
 
     <div id="questionFocusView" class="focus-question-screen" style="display:none;">
@@ -97,18 +97,18 @@
         <div id="answerRevealBox">
             CORRECT ANSWER: <span id="answerSpan"></span>
             <div style="margin-top: 30px;">
-                <button class="start-match-btn" style="background:#74b9ff; box-shadow:0 6px 0 #0984e3; font-size:1.5rem; padding:12px 30px;" onclick="returnFromQuestion()">➡️ Back to Categories</button>
+                <button class="start-match-btn" style="background:#74b9ff; box-shadow:0 6px 0 #0984e3; font-size:1.5rem; padding:12px 30px;" onclick="returnFromQuestion()"> Back to Categories</button>
             </div>
         </div>
     </div>
 
     <div id="leaderboardView" class="focus-question-screen" style="display:none; max-width: 900px;">
-        <h2 style="font-size: 3rem; margin-top: 0; color: #6c5ce7;">👑 Final Results 👑</h2>
+        <h2 style="font-size: 3rem; margin-top: 0; color: #6c5ce7;"> Final Results </h2>
         <table class="leaderboard-table">
             <thead><tr><th>Rank</th><th>Player</th><th>Total Score</th></tr></thead>
             <tbody id="leaderboardRows"></tbody>
         </table>
-        <button class="start-match-btn" onclick="window.close()">CLOSE GAME BOARD ❌</button>
+        <button class="start-match-btn" onclick="window.close()">CLOSE GAME BOARD </button>
     </div>
 
     <script>
