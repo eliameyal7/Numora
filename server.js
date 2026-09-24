@@ -184,7 +184,7 @@ app.post('/api/ai/scan-worksheet', requireLogin, async (req, res) => {
         const { base64Image } = req.body;
         if (!base64Image) return res.status(400).json({ error: "No image payload found." });
 
-        console.log("🤖 Scanning sheet with 8-question limit & visual extraction rules...");
+        console.log("Scanning sheet...");
 
         const response = await openai.chat.completions.create({
             model: "gpt-4o",
